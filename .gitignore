@@ -20,6 +20,9 @@
 # Ignore Byebug command history file.
 .byebug_history
 
+# Ignore the coverage data
+/coverage
+
 # Extra files to ignore
 doc/
 *.swp
