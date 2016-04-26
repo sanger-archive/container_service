@@ -14,4 +14,8 @@ RSpec.describe LabwareType, type: :model do
   it "should be invalid with a blank name" do
     expect(build(:labware_type, name: '')).to_not be_valid
   end
+
+  it "should be invalid without a layout" do
+    expect(build(:labware_type, layout: nil)).to_not be_valid
+  end
 end

@@ -1,6 +1,19 @@
+# See README.md for copyright details
+
 require 'rails_helper'
 
 describe Api::V1::LabwareTypesController, type: :request do
+  def validate_labware_type(labware_type_json, labware_type)
+    expect(labware_type_json[:id]).to eq(labware_type.id.to_s)
+    expect(labware_type_json[:attributes][:name]).to eq(labware_type.name)
+    expect(labware_type_json[:relationships][:layout][:data][:id]).to eq(labware_type.layout.id.to_s)
+  end
+
+  def validate_labware_included(layout_json, layout)
+    expect(layout_json[:id]).to eq(layout.id.to_s)
+    expect(layout_json[:attributes][:name]).to eq(layout.name)
+  end
+
   describe "GET #show" do
     it "should return a serialized labware_type instance" do
       labware_type = create(:labware_type)
@@ -8,10 +21,13 @@ describe Api::V1::LabwareTypesController, type: :request do
       get api_v1_labware_type_path(labware_type)
       expect(response).to be_success
 
-      json = JSON.parse(response.body, symbolize_names: true)
+      labware_type_json = JSON.parse(response.body, symbolize_names: true)
 
-      expect(json[:data][:id]).to eq(labware_type.id.to_s)
-      expect(json[:data][:attributes][:name]).to eq(labware_type.name)
+      validate_labware_type(labware_type_json[:data], labware_type)
+
+      layout_json = labware_type_json[:included].select { |obj| obj[:type] == 'layouts' }[0]
+
+      validate_labware_included(layout_json, labware_type.layout)
     end
   end
 
@@ -22,13 +38,17 @@ describe Api::V1::LabwareTypesController, type: :request do
       get api_v1_labware_types_path
       expect(response).to be_success
 
-      json = JSON.parse(response.body, symbolize_names: true)
+      labware_types_json = JSON.parse(response.body, symbolize_names: true)
 
-      expect(json[:data].count).to eq(labware_types.count)
+      expect(labware_types_json[:data].count).to eq(labware_types.count)
 
       (0...labware_types.count).each do |n|
-        expect(json[:data][n][:id]).to eq(labware_types[n].id.to_s)
-        expect(json[:data][n][:attributes][:name]).to eq(labware_types[n].name)
+        validate_labware_type(labware_types_json[:data][n], labware_types[n])
+
+        layout_json = labware_types_json[:included].select { |obj|
+          obj[:type] == 'layouts' and obj[:id] == labware_types_json[:data][n][:relationships][:layout][:data][:id] }[0]
+
+        validate_labware_included(layout_json, labware_types[n].layout)
       end
     end
   end
