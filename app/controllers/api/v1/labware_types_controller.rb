@@ -7,12 +7,12 @@ class Api::V1::LabwareTypesController < Api::V1::ApplicationController
   def index
     @labware_types = LabwareType.all
 
-    render json: @labware_types
+    render json: @labware_types, include: [:layout]
   end
 
   # GET /labware_types/1
   def show
-    render json: @labware_type
+    render json: @labware_type, include: [:layout]
   end
 
   # # POST /labware_types

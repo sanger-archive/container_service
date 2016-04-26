@@ -1,3 +1,7 @@
+# See README.md for copyright details
+
 class LabwareType < ApplicationRecord
-  validates :name, presence: true
+  belongs_to  :layout
+
+  validates   :name, presence: true
 end
