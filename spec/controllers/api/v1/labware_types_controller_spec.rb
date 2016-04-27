@@ -12,11 +12,17 @@ describe Api::V1::LabwareTypesController, type: :request do
   def validate_labware_included(layout_json, layout)
     expect(layout_json[:id]).to eq(layout.id.to_s)
     expect(layout_json[:attributes][:name]).to eq(layout.name)
+
+    expected_locations_json = layout_json[:relationships][:locations][:data]
+    expect(expected_locations_json.size).to eq(layout.locations.size)
+    expected_locations_json.zip(layout.locations).each do |json_location, orig_location|
+      expect(json_location[:id]).to eq(orig_location.id.to_s)
+    end
   end
 
   describe "GET #show" do
     it "should return a serialized labware_type instance" do
-      labware_type = create(:labware_type)
+      labware_type = create(:labware_type, layout: create(:layout_with_locations))
 
       get api_v1_labware_type_path(labware_type)
       expect(response).to be_success

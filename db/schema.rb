@@ -11,21 +11,32 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160425134308) do
+ActiveRecord::Schema.define(version: 20160426110247) do
 
-  create_table "labware_types", force: :cascade do |t|
+  create_table "labware_types", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "layout_id"
   end
 
-  add_index "labware_types", ["layout_id"], name: "index_labware_types_on_layout_id"
+  add_index "labware_types", ["layout_id"], name: "index_labware_types_on_layout_id", using: :btree
 
-  create_table "layouts", force: :cascade do |t|
+  create_table "layouts", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
+  create_table "locations", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+    t.string   "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer  "layout_id"
+  end
+
+  add_index "locations", ["layout_id"], name: "index_locations_on_layout_id", using: :btree
+
+  add_foreign_key "labware_types", "layouts"
+  add_foreign_key "locations", "layouts"
 end
