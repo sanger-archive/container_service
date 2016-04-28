@@ -1,0 +1,186 @@
+FORMAT: 1A
+
+# container-service-api
+
+RESTful JSON API-blueprint for registering and modifying all types of containers for holding all types of material (sample, library etc...).
+It can create, read and update a container (labware) and also add additional metadata to it.
+
+## Labware Type Collection [/labware_types]
+
+### List All Labware Types [GET]
+
++ Response 200 (application/json)
+
+        {
+            "data": [
+                {
+                    "attributes": {
+                        "name": "generic tube"
+                    },
+                    "id": "1",
+                    "relationships": {
+                        "layout": {
+                            "data": {
+                                "id": "1",
+                                "type": "layouts"
+                            }
+                        }
+                    },
+                    "type": "labware-types"
+                }
+            ],
+            "included": [
+                {
+                    "attributes": {
+                        "name": "tube"
+                    },
+                    "id": "1",
+                    "relationships": {
+                        "locations": {
+                            "data": [
+                                {
+                                    "id": "1",
+                                    "type": "locations"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "layouts"
+                }
+            ]
+        }
+
+## Labware Type [/labware_types/{id}]
+        
+### Get a Labware Type [GET]
+
+This action response with the queried labware type data.
+
++ Response 200 (application/json)
+
+        {
+          "data": {
+            "id": "1",
+            "type": "labware-types",
+            "attributes": {
+              "name": "generic tube"
+            },
+            "relationships": {
+              "layout": {
+                "data": {
+                  "id": "1",
+                  "type": "layouts"
+                }
+              }
+            }
+          },
+          "included": [
+            {
+              "id": "1",
+              "type": "layouts",
+              "attributes": {
+                "name": "tube"
+              },
+              "relationships": {
+                "locations": {
+                  "data": [
+                    {
+                      "id": "1",
+                      "type": "locations"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+
+## Layout Collection [/layouts]
+
+### List All Layouts [GET]
+
++ Response 200 (application/json)
+
+        {
+            "data": [
+                {
+                    "attributes": {
+                        "name": "tube"
+                    },
+                    "id": "1",
+                    "relationships": {
+                        "locations": {
+                            "data": [
+                                {
+                                    "id": "1",
+                                    "type": "locations"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "layouts"
+                }
+            ],
+            "included": [
+                {
+                    "attributes": {
+                        "name": "A1"
+                    },
+                    "id": "1",
+                    "relationships": {
+                        "layout": {
+                            "data": {
+                                "id": "1",
+                                "type": "layouts"
+                            }
+                        }
+                    },
+                    "type": "locations"
+                }
+            ]
+        }
+        
+## Layout [/layouts/{id}]
+        
+### Get a Layout [GET]
+
+This action response with the queried labware type data.
+
++ Response 200 (application/json)
+
+        {
+          "data": {
+            "id": "1",
+            "type": "layouts",
+            "attributes": {
+              "name": "tube"
+            },
+            "relationships": {
+              "locations": {
+                "data": [
+                  {
+                    "id": "1",
+                    "type": "locations"
+                  }
+                ]
+              }
+            }
+          },
+          "included": [
+            {
+              "id": "1",
+              "type": "locations",
+              "attributes": {
+                "name": "A1"
+              },
+              "relationships": {
+                "layout": {
+                  "data": {
+                    "id": "1",
+                    "type": "layouts"
+                  }
+                }
+              }
+            }
+          ]
+        }
