@@ -7,12 +7,12 @@ class Api::V1::LayoutsController < Api::V1::ApplicationController
   def index
     @layouts = Layout.all
 
-    render json: @layouts
+    render json: @layouts, include: included_relations_to_render
   end
 
   # GET /layouts/1
   def show
-    render json: @layout
+    render json: @layout, include: included_relations_to_render
   end
 
   # # POST /layouts
@@ -39,6 +39,10 @@ class Api::V1::LayoutsController < Api::V1::ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_layout
       @layout = Layout.find(params[:id])
+    end
+
+    def included_relations_to_render
+      [:locations]
     end
 
     # # Only allow a trusted parameter "white list" through.

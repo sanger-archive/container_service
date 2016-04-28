@@ -2,4 +2,6 @@
 
 class LayoutSerializer < ActiveModel::Serializer
   attributes :id, :name
+
+  has_many :locations
 end

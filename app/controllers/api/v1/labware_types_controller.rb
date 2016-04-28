@@ -7,12 +7,12 @@ class Api::V1::LabwareTypesController < Api::V1::ApplicationController
   def index
     @labware_types = LabwareType.all
 
-    render json: @labware_types, include: [:layout]
+    render json: @labware_types, include: included_relations_to_render
   end
 
   # GET /labware_types/1
   def show
-    render json: @labware_type, include: [:layout]
+    render json: @labware_type, include: included_relations_to_render
   end
 
   # # POST /labware_types
@@ -39,6 +39,10 @@ class Api::V1::LabwareTypesController < Api::V1::ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_labware_type
       @labware_type = LabwareType.find(params[:id])
+    end
+
+    def included_relations_to_render
+      [:layout]
     end
 
     # # Only allow a trusted parameter "white list" through.
