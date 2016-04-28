@@ -1,7 +1,8 @@
 class Labware < ApplicationRecord
   belongs_to :labware_type
 
-  validates :uuid, :barcode, uniqueness: { case_sensitive: false }
+  validates :uuid, uniqueness: {case_sensitive: false}, uuid: true
+  validates :barcode, uniqueness: {case_sensitive: false}
 
   after_initialize :generate_uuid, if: 'uuid.nil?'
 

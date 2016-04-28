@@ -11,6 +11,10 @@ RSpec.describe Labware, type: :model do
     expect(build(:labware, labware_type: nil)).to_not be_valid
   end
 
+  it 'should be valid without an external id' do
+    expect(build(:labware, external_id: nil)).to be_valid
+  end
+
   it 'should create a uuid only when it\'s created' do
     labware = build(:labware)
     expect(labware.uuid.size).to eq(36)
