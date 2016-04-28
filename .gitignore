@@ -23,6 +23,8 @@
 # Ignore the coverage data
 /coverage
 
+/config/database.yml
+
 # Extra files to ignore
 doc/
 *.swp

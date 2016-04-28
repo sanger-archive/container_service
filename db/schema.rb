@@ -11,32 +11,44 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160426110247) do
+ActiveRecord::Schema.define(version: 20160428091039) do
 
-  create_table "labware_types", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+  create_table "labware_types", force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "layout_id"
   end
 
-  add_index "labware_types", ["layout_id"], name: "index_labware_types_on_layout_id", using: :btree
+  add_index "labware_types", ["layout_id"], name: "index_labware_types_on_layout_id"
 
-  create_table "layouts", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+  create_table "labwares", force: :cascade do |t|
+    t.string   "barcode"
+    t.string   "external_id"
+    t.string   "uuid"
+    t.integer  "labware_type_id"
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+  end
+
+  add_index "labwares", ["barcode"], name: "index_labwares_on_barcode"
+  add_index "labwares", ["external_id"], name: "index_labwares_on_external_id"
+  add_index "labwares", ["labware_type_id"], name: "index_labwares_on_labware_type_id"
+  add_index "labwares", ["uuid"], name: "index_labwares_on_uuid"
+
+  create_table "layouts", force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
-  create_table "locations", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+  create_table "locations", force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "layout_id"
   end
 
-  add_index "locations", ["layout_id"], name: "index_locations_on_layout_id", using: :btree
+  add_index "locations", ["layout_id"], name: "index_locations_on_layout_id"
 
-  add_foreign_key "labware_types", "layouts"
-  add_foreign_key "locations", "layouts"
 end
