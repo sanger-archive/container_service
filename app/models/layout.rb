@@ -5,4 +5,5 @@ class Layout < ApplicationRecord
   has_many :locations
 
   validates :name, presence: true
+  validates_presence_of :locations
 end

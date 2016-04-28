@@ -3,6 +3,6 @@
 FactoryGirl.define do
   factory :labware_type do
     sequence(:name) { |n| "Labware type name_#{n}" }
-    layout
+    layout { build :layout_with_locations }
   end
 end

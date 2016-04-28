@@ -22,7 +22,7 @@ describe Api::V1::LabwareTypesController, type: :request do
 
   describe "GET #show" do
     it "should return a serialized labware_type instance" do
-      labware_type = create(:labware_type, layout: create(:layout_with_locations))
+      labware_type = create(:labware_type)
 
       get api_v1_labware_type_path(labware_type)
       expect(response).to be_success
