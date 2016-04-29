@@ -1,7 +1,7 @@
 # See README.md for copyright details
 
 class Api::V1::LayoutsController < Api::V1::ApplicationController
-  before_action :set_layout, only: [:show, :update]
+  before_action :set_layout, only: [:show]
 
   # GET /layouts
   def index
