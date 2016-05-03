@@ -29,3 +29,4 @@ en:
       receptacles:
         incorrect_count: "size must equal the locations size"
       location_of_wrong_layout: 'must correspond to layout of this labware type'
+      immutable: "can't be changed"

@@ -1,10 +1,10 @@
 class Receptacle < ApplicationRecord
-  belongs_to :labware, inverse_of: :receptacles
-  belongs_to :location
+  belongs_to  :labware, inverse_of: :receptacles
+  belongs_to  :location
 
   validates :location, uniqueness: { scope: :labware }
-
   validate :location_of_correct_layout, if: [:labware, :location]
+  validates :material_uuid, uuid: true, unless: "material_uuid.nil?" 
 
   private
 

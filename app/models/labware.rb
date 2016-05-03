@@ -13,8 +13,8 @@ class Labware < ApplicationRecord
   validates :uuid, uniqueness: {case_sensitive: false}, uuid: true
   validates :barcode, uniqueness: {case_sensitive: false}
   validates :barcode_prefix, presence: true, if: 'barcode.nil?'
-
   validate :one_location_per_receptacle, if: :labware_type
+  validate :labware_type_immutable
 
   private
 
@@ -30,6 +30,12 @@ class Labware < ApplicationRecord
   def one_location_per_receptacle
     unless labware_type.layout.locations.size == receptacles.size
       errors.add :receptacles, I18n.t('errors.messages.receptacles.incorrect_count')
+    end
+  end
+
+  def labware_type_immutable
+    if persisted? and "labware_type_id".in? changed
+      errors.add :labware_type, I18n.t('errors.messages.immutable')
     end
   end
 end

@@ -51,21 +51,53 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
         labware_json_params[:relationships][:labware_type] and
         labware_json_params[:relationships][:labware_type][:data] and
         labware_json_params[:relationships][:labware_type][:data][:attributes]
-      labware_type = LabwareType.find_by(labware_json_params[:relationships][:labware_type][:data][:attributes])
+      new_labware_type = LabwareType.find_by(labware_json_params[:relationships][:labware_type][:data][:attributes])
+      if labware_type.nil? or labware_type == new_labware_type
+        labware_type = new_labware_type
+      else 
+        return params.merge(labware_type: new_labware_type)
+      end
     end
 
-    receptacle_ids = @labware ? @labware.receptacles.map { |r| r.id } : []
-    receptacles_attributes = (labware_type and !@labware) ? labware_type.layout.locations.map { |location| {location: location} } : []
+    receptacles_attributes = labware_type ? labware_type.layout.locations.map { |location| {location: location} } : []
 
-    params.merge(labware_type: labware_type, receptacle_ids: receptacle_ids, receptacles_attributes: receptacles_attributes)
+    if @labware
+      @labware.receptacles.each { |receptacle| 
+        receptacle_attributes = receptacles_attributes.find { |attr| attr[:location] == receptacle.location }
+        receptacle_attributes[:id] = receptacle.id
+        receptacle_attributes[:material_uuid] = receptacle.material_uuid
+      }
+    end
+
+    if labware_json_params[:relationships] and
+        labware_json_params[:relationships][:receptacles] and
+        labware_json_params[:relationships][:receptacles][:data]
+      labware_json_params[:relationships][:receptacles][:data].each { |receptacle_params| 
+        location_name = receptacle_params[:relationships][:location][:data][:attributes][:name]
+        receptacle_attributes = receptacles_attributes.find { |attr| attr[:location].name == location_name }
+        receptacle_attributes[:material_uuid] = receptacle_params[:attributes][:material_uuid]
+      }
+    end 
+
+    params.merge(labware_type: labware_type, receptacles_attributes: receptacles_attributes)
   end
 
   def labware_json_params
-    params.require(:data).permit([
-                                     :id,
-                                     attributes: [:external_id, :barcode, :barcode_prefix, :barcode_info],
-                                     relationships: {labware_type: {data: {attributes: [:name]}}}
-                                 ])
+    params.require(:data).permit(
+      [
+        :id,
+        attributes: [:external_id, :barcode, :barcode_prefix, :barcode_info],
+        relationships: {
+          labware_type: {data: {attributes: [:name]}},
+          receptacles: { data:
+            [
+              attributes: [:material_uuid], 
+              relationships: {location: {data: {attributes: [:name]}}}
+            ]
+          }
+        }
+      ]
+    )
   end
 
   def included_relations_to_render

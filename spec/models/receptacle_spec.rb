@@ -1,10 +1,19 @@
 require 'rails_helper'
+require 'uuid'
 
 RSpec.describe Receptacle, type: :model do
   it "should make a valid receptacle" do
     labware = build(:labware_with_receptacles)
 
     expect(labware.receptacles.first).to be_valid
+  end
+
+  it "should be valid with a valid material_uuid" do
+    labware = build(:labware_with_receptacles)
+    receptacle = labware.receptacles.first
+    receptacle.material_uuid = UUID.new.generate
+
+    expect(receptacle).to be_valid
   end
 
   it "should be invalid without a location" do
@@ -15,6 +24,14 @@ RSpec.describe Receptacle, type: :model do
 
   it "should be invalid without a labware" do
     expect(build(:receptacle, labware: nil)).to_not be_valid
+  end
+
+  it "should be invalid with an invalid material_uuid" do
+    labware = build(:labware_with_receptacles)
+    receptacle = labware.receptacles.first
+    receptacle.material_uuid = 'not valid uuid'
+
+    expect(receptacle).to_not be_valid
   end
 
   it "should be invalid with 2 receptacles sharing the same location in the same labware" do

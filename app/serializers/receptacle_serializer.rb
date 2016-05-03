@@ -1,5 +1,4 @@
 class ReceptacleSerializer < ActiveModel::Serializer
-  attributes :id
-  has_one :labware
+  attributes :id, :material_uuid
   has_one :location
 end
