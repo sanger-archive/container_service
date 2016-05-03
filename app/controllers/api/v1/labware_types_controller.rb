@@ -42,7 +42,7 @@ class Api::V1::LabwareTypesController < Api::V1::ApplicationController
     end
 
     def included_relations_to_render
-      [:layout]
+      [:layout, "layout.locations"]
     end
 
     # # Only allow a trusted parameter "white list" through.

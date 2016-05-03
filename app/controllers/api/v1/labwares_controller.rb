@@ -46,14 +46,18 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
   def labware_params
     params = (labware_json_params[:attributes] or {}).merge(uuid: labware_json_params[:id]).delete_if { |k, v| v.nil? }
 
+    labware_type = @labware ? @labware.labware_type : nil
     if labware_json_params[:relationships] and
         labware_json_params[:relationships][:labware_type] and
         labware_json_params[:relationships][:labware_type][:data] and
         labware_json_params[:relationships][:labware_type][:data][:attributes]
-      params = params.merge(labware_type: LabwareType.find_by(labware_json_params[:relationships][:labware_type][:data][:attributes]))
+      labware_type = LabwareType.find_by(labware_json_params[:relationships][:labware_type][:data][:attributes])
     end
 
-    params
+    receptacle_ids = @labware ? @labware.receptacles.map { |r| r.id } : []
+    receptacles_attributes = (labware_type and !@labware) ? labware_type.layout.locations.map { |location| {location: location} } : []
+
+    params.merge(labware_type: labware_type, receptacle_ids: receptacle_ids, receptacles_attributes: receptacles_attributes)
   end
 
   def labware_json_params
@@ -65,6 +69,6 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
   end
 
   def included_relations_to_render
-    [:labware_type]
+    [:labware_type, :receptacles, "receptacles.location"]
   end
 end

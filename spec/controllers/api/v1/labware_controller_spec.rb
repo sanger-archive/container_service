@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe Api::V1::LayoutsController, type: :request do
+describe Api::V1::LabwaresController, type: :request do
   def validate_labware(labware_json, labware)
     expect(labware_json[:id]).to eq(labware.uuid)
     expect(labware_json[:attributes][:barcode]).to eq(labware.barcode)
@@ -10,15 +10,31 @@ describe Api::V1::LayoutsController, type: :request do
 
     labware_type_json = labware_json[:relationships][:'labware-type'][:data]
     expect(labware_type_json[:id]).to eq(labware.labware_type.id.to_s)
+
+    receptacles_json = labware_json[:relationships][:receptacles][:data]
+    expect(receptacles_json.size).to eq(labware.receptacles.size)
   end
 
   def validate_included_labware_type(labware_type_json, labware_type)
     expect(labware_type_json[:attributes][:name]).to eq(labware_type.name)
   end
 
+  def validate_included_receptacles(receptacles_json, receptacles)
+    receptacles_json.zip(receptacles).each { |receptacle_json, receptacle| 
+      expect(receptacle_json[:relationships][:location][:data][:id]).to eq(receptacle.location.id.to_s)
+    }
+  end
+
+  def validate_included_locations(locations_json, locations)
+    locations_json.zip(locations).each { |location_json, location| 
+      expect(location_json[:id]).to eq(location.id.to_s)
+      expect(location_json[:attributes][:name]).to eq(location.name)
+    }
+  end
+
   describe 'GET #show' do
     it 'should return a serialized layout instance' do
-      labware = create(:labware)
+      labware = create(:labware_with_receptacles)
 
       get api_v1_labware_path(labware.uuid)
       expect(response).to be_success
@@ -27,12 +43,14 @@ describe Api::V1::LayoutsController, type: :request do
 
       validate_labware(labware_json[:data], labware)
       validate_included_labware_type(labware_json[:included].find { |obj| obj[:id] == labware.labware_type.id.to_s and obj[:type] == 'labware-types' }, labware.labware_type)
+      validate_included_receptacles(labware_json[:included].select { |obj| obj[:type] == 'receptacles' }, labware.receptacles)
+      validate_included_locations(labware_json[:included].select { |obj| obj[:type] == 'locations' }, labware.receptacles.map { |r| r.location })
     end
   end
 
   describe 'GET #index' do
     it 'should return a list of serialized layout instances' do
-      labwares = create_list(:labware, 3)
+      labwares = create_list(:labware_with_receptacles, 3)
 
       get api_v1_labwares_path
       expect(response).to be_success
@@ -45,6 +63,8 @@ describe Api::V1::LayoutsController, type: :request do
         validate_labware(labwares_json[:data][n], labwares[n])
       end
       validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labwares.first.labware_type.id.to_s and obj[:type] == 'labware-types' }, labwares.first.labware_type)
+      validate_included_receptacles(labwares_json[:included].select { |obj| obj[:type] == 'receptacles' }, labwares.map {|labware| labware.receptacles }.flatten)
+      validate_included_locations(labwares_json[:included].select { |obj| obj[:type] == 'locations' }, labwares.map {|labware| labware.receptacles.map { |r| r.location }}.flatten)
     end
   end
 
@@ -57,9 +77,8 @@ describe Api::V1::LayoutsController, type: :request do
       post api_v1_labwares_path, params: @labware_json.to_json, headers: headers
     }
 
-
-    it 'should create a labware' do
-      labware = build(:labware)
+    it 'should create a empty labware' do
+      labware = build(:labware_with_receptacles)
 
       @labware_json = {
           data: {
@@ -97,7 +116,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should create a labware with no info' do
-      labware = build(:labware)
+      labware = build(:labware_with_receptacles)
 
       @labware_json = {
           data: {
@@ -127,7 +146,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should create a labware with a given barcode' do
-      labware = build(:labware)
+      labware = build(:labware_with_receptacles)
 
       @labware_json = {
           data: {
@@ -157,8 +176,8 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should not allow duplicate barcodes' do
-      create(:labware, barcode: 'TEST_BARCODE')
-      labware = build(:labware)
+      create(:labware_with_receptacles, barcode: 'TEST_BARCODE')
+      labware = build(:labware_with_receptacles)
 
       @labware_json = {
           data: {
@@ -188,7 +207,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should create a labware with a given uuid' do
-      labware = build(:labware)
+      labware = build(:labware_with_receptacles)
       uuid = UUID.new.generate
 
       @labware_json = {
@@ -221,8 +240,8 @@ describe Api::V1::LayoutsController, type: :request do
 
     it 'should not allow duplicate uuids' do
       uuid = UUID.new.generate
-      create(:labware, uuid: uuid)
-      labware = build(:labware)
+      create(:labware_with_receptacles, uuid: uuid)
+      labware = build(:labware_with_receptacles)
 
       @labware_json = {
           data: {
@@ -253,7 +272,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should not allow invalid uuids' do
-      labware = build(:labware)
+      labware = build(:labware_with_receptacles)
 
       @labware_json = {
           data: {
@@ -284,7 +303,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should be invalid without a labware_type' do
-      labware = build(:labware)
+      labware = build(:labware_with_receptacles)
 
       @labware_json = {
           data: {
@@ -305,7 +324,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should be invalid if labware_type does not exist' do
-      labware = build(:labware)
+      labware = build(:labware_with_receptacles)
 
       @labware_json = {
           data: {
@@ -345,7 +364,7 @@ describe Api::V1::LayoutsController, type: :request do
     }
 
     it 'should update the labware' do
-      @labware = create(:labware)
+      @labware = create(:labware_with_receptacles)
       new_labware_type = create(:labware_type)
 
       @labware_json = {
@@ -383,7 +402,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should not allow a labware_type that doesn\'t exist' do
-      @labware = create(:labware)
+      @labware = create(:labware_with_receptacles)
       new_labware_type = build(:labware_type)
 
       @labware_json = {
@@ -417,7 +436,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should be valid without specifying attributes' do
-      @labware = create(:labware)
+      @labware = create(:labware_with_receptacles)
       new_labware_type = create(:labware_type)
 
       @labware_json = {
@@ -451,7 +470,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should be valid without specifying labware_type' do
-      @labware = create(:labware)
+      @labware = create(:labware_with_receptacles)
 
       @labware_json = {
           data: {
@@ -479,7 +498,7 @@ describe Api::V1::LayoutsController, type: :request do
     end
 
     it 'should allow external_id to be set to blank' do
-      @labware = create(:labware)
+      @labware = create(:labware_with_receptacles)
       new_labware_type = create(:labware_type)
 
       @labware_json = {
