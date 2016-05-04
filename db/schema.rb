@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160428091039) do
+ActiveRecord::Schema.define(version: 20160503130557) do
 
   create_table "labware_types", force: :cascade do |t|
     t.string   "name"
@@ -50,5 +50,16 @@ ActiveRecord::Schema.define(version: 20160428091039) do
   end
 
   add_index "locations", ["layout_id"], name: "index_locations_on_layout_id"
+
+  create_table "receptacles", force: :cascade do |t|
+    t.integer  "labware_id"
+    t.integer  "location_id"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.string   "material_uuid"
+  end
+
+  add_index "receptacles", ["labware_id"], name: "index_receptacles_on_labware_id"
+  add_index "receptacles", ["location_id"], name: "index_receptacles_on_location_id"
 
 end
