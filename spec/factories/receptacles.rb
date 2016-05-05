@@ -1,3 +1,5 @@
+# See README.md for copyright details
+
 FactoryGirl.define do
   factory :receptacle do
     after(:build) do |receptacle, evaluator|

@@ -33,8 +33,29 @@ describe Api::V1::LabwaresController, type: :request do
     }
   end
 
+  def validate_labware_with_metadata(labware_json_data, labware)
+    (0...labware.metadata.count).each do |n|
+      expect(labware_json_data[:relationships][:metadata][:data][n][:id]).to eq(labware.metadata[n].id.to_s)
+    end
+  end
+
+  def validate_included_metadata(metadata_json, metadata)
+    (0...metadata.count).each do |n|
+      metadatum_json = metadata_json.select { |obj| obj[:id] == metadata[n].id.to_s }[0]
+      expect(metadatum_json[:attributes][:key]).to eq(metadata[n].key)
+      expect(metadatum_json[:attributes][:value]).to eq(metadata[n].value)
+    end
+  end
+
+  let(:check_response_is_same) {
+    post_response = response
+    get api_v1_labware_path(Labware.last.uuid)
+    get_response = response
+    expect(post_response.body).to eq(get_response.body)
+  }
+
   describe 'GET #show' do
-    it 'should return a serialized layout instance' do
+    it 'should return a serialized labware instance' do
       labware = create(:labware_with_receptacles_with_material)
 
       get api_v1_labware_path(labware.uuid)
@@ -47,10 +68,23 @@ describe Api::V1::LabwaresController, type: :request do
       validate_included_receptacles(labware_json[:included].select { |obj| obj[:type] == 'receptacles' }, labware.receptacles)
       validate_included_locations(labware_json[:included].select { |obj| obj[:type] == 'locations' }, labware.receptacles.map { |r| r.location })
     end
+
+    it 'should return a serialized labware instance with metadata' do
+      labware = create(:labware_with_receptacles_with_metadata)
+
+      get api_v1_labware_path(labware.uuid)
+      expect(response).to be_success
+
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      validate_labware(labware_json[:data], labware)
+      validate_labware_with_metadata(labware_json[:data], labware)
+      validate_included_metadata(labware_json[:included].select { |obj| obj[:type] == 'metadata' }, labware.metadata)
+    end
   end
 
   describe 'GET #index' do
-    it 'should return a list of serialized layout instances' do
+    it 'should return a list of serialized labware instances' do
       labwares = create_list(:labware_with_receptacles_with_material, 3)
 
       get api_v1_labwares_path
@@ -66,6 +100,23 @@ describe Api::V1::LabwaresController, type: :request do
       validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labwares.first.labware_type.id.to_s and obj[:type] == 'labware-types' }, labwares.first.labware_type)
       validate_included_receptacles(labwares_json[:included].select { |obj| obj[:type] == 'receptacles' }, labwares.map {|labware| labware.receptacles }.flatten)
       validate_included_locations(labwares_json[:included].select { |obj| obj[:type] == 'locations' }, labwares.map {|labware| labware.receptacles.map { |r| r.location }}.flatten)
+    end
+
+    it 'should return a list of serialized labware instances with metadata' do
+      labwares = create_list(:labware_with_receptacles_with_metadata, 3)
+
+      get api_v1_labwares_path
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labwares_json[:data].count).to eq(labwares.size)
+
+      (0...labwares.size).each do |n|
+        labware_json = labwares_json[:data][n]
+        validate_labware_with_metadata(labware_json, labwares[n])
+        validate_included_metadata(labwares_json[:included].select { |obj| obj[:type] == 'metadata' }, labwares[n].metadata)
+      end
     end
   end
 
@@ -100,9 +151,10 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(1)
-                                  .and change { LabwareType.count }.by(0)
-                                  .and change { Receptacle.count }.by(labware.receptacles.size)
+      expect { post_json }.to   change { Labware.count }.by(1)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Receptacle.count }.by(labware.receptacles.size)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_created
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -110,11 +162,9 @@ describe Api::V1::LabwaresController, type: :request do
       expect(new_labware.external_id).to eq(labware.external_id)
       expect(new_labware.uuid.size).to eq(36)
       expect(new_labware.barcode).to include('TEST_XYZ_')
+      expect(new_labware.metadata).to be_empty
 
-      post_response = response
-      get api_v1_labware_path(new_labware.uuid)
-      get_response = response
-      expect(post_response.body).to eq(get_response.body)
+      check_response_is_same
     end
 
     it 'should create a labware with no info' do
@@ -138,8 +188,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(1)
-                                  .and change { LabwareType.count }.by(0)
+      expect { post_json }.to   change { Labware.count }.by(1)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_created
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -168,8 +219,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(1)
-                                  .and change { LabwareType.count }.by(0)
+      expect { post_json }.to   change { Labware.count }.by(1)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_created
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -199,8 +251,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(0)
-                                  .and change { LabwareType.count }.by(0)
+      expect { post_json }.to   change { Labware.count }.by(0)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_unprocessable
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -231,8 +284,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(1)
-                                  .and change { LabwareType.count }.by(0)
+      expect { post_json }.to   change { Labware.count }.by(1)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_created
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -264,8 +318,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(0)
-                                  .and change { LabwareType.count }.by(0)
+      expect { post_json }.to   change { Labware.count }.by(0)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_unprocessable
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -295,8 +350,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(0)
-                                  .and change { LabwareType.count }.by(0)
+      expect { post_json }.to   change { Labware.count }.by(0)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_unprocessable
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -316,8 +372,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(0)
-                                  .and change { LabwareType.count }.by(0)
+      expect { post_json }.to   change { Labware.count }.by(0)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_unprocessable
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -346,8 +403,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(0)
-                                  .and change { LabwareType.count }.by(0)
+      expect { post_json }.to   change { Labware.count }.by(0)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_unprocessable
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -393,9 +451,10 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(1)
-                                  .and change { LabwareType.count }.by(0)
-                                  .and change { Receptacle.count }.by(labware.receptacles.size)
+      expect { post_json }.to   change { Labware.count }.by(1)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Receptacle.count }.by(labware.receptacles.size)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_created
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -409,10 +468,7 @@ describe Api::V1::LabwaresController, type: :request do
         expect(new_receptacle.location).to eq(receptacle_orig.location)
       }
 
-      post_response = response
-      get api_v1_labware_path(new_labware.uuid)
-      get_response = response
-      expect(post_response.body).to eq(get_response.body)
+      check_response_is_same
     end
 
     it 'should create a labware with 1 material in it' do
@@ -454,9 +510,10 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { post_json }.to change { Labware.count }.by(1)
-                                  .and change { LabwareType.count }.by(0)
-                                  .and change { Receptacle.count }.by(labware.receptacles.size)
+      expect { post_json }.to   change { Labware.count }.by(1)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Receptacle.count }.by(labware.receptacles.size)
+                          .and  change { Metadatum.count }.by(0)
       expect(response).to be_created
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
@@ -470,10 +527,126 @@ describe Api::V1::LabwaresController, type: :request do
         expect(new_receptacle.location).to eq(receptacle_orig.location)
       }
 
-      post_response = response
-      get api_v1_labware_path(new_labware.uuid)
-      get_response = response
-      expect(post_response.body).to eq(get_response.body)
+      check_response_is_same
+    end
+
+    it 'should create a empty labware with metadata' do
+      labware = build(:labware_with_receptacles_with_metadata)
+
+      @labware_json = {
+          data: {
+              attributes: {
+                  external_id: labware.external_id,
+                  barcode_prefix: 'TEST',
+                  barcode_info: 'XYZ'
+              },
+              relationships: {
+                  labware_type: {
+                      data: {
+                          attributes: {
+                              name: labware.labware_type.name
+                          }
+                      }
+                  },
+                  metadata: {
+                      data: labware.metadata.map { |metadatum| {attributes: {key: metadatum.key, value: metadatum.value}} }
+                  }
+              }
+          }
+      }
+
+      expect { post_json }.to   change { Labware.count }.by(1)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Receptacle.count }.by(labware.receptacles.size)
+                          .and  change { Metadatum.count }.by(3)
+      expect(response).to be_created
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      new_labware = Labware.last
+      expect(new_labware.metadata.size).to eq(labware.metadata.size)
+      new_labware.metadata.zip(labware.metadata).each do |new_metadatum, metadatum|
+        expect(new_metadatum.key).to eq(metadatum.key)
+        expect(new_metadatum.value).to eq(metadatum.value)
+      end
+
+      check_response_is_same
+    end
+
+    it 'should return the created instance with metadata' do
+      labware = build(:labware_with_receptacles_with_metadata)
+
+      @labware_json = {
+          data: {
+              attributes: {
+                  external_id: labware.external_id,
+                  barcode_prefix: 'TEST',
+                  barcode_info: 'XYZ'
+              },
+              relationships: {
+                  labware_type: {
+                      data: {
+                          attributes: {
+                              name: labware.labware_type.name
+                          }
+                      }
+                  },
+                  metadata: {
+                      data: labware.metadata.map { |metadatum| {attributes: {key: metadatum.key, value: metadatum.value}} }
+                  }
+              }
+          }
+      }
+
+      post_json
+
+      expect(response).to be_created
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labware_json[:data][:relationships][:metadata][:data].size).to eq(labware.metadata.size)
+
+      expect(labware_json[:included].select { |obj| obj[:type] == 'metadata' }.size).to eq(labware.metadata.size)
+      labware_json[:included].select { |obj| obj[:type] == 'metadata' }.zip(labware.metadata).each do |included_metadata, metadata|
+        expect(included_metadata[:attributes][:key]).to eq(metadata.key)
+        expect(included_metadata[:attributes][:value]).to eq(metadata.value)
+      end
+    end
+
+    it 'should fail if given invalid metadata' do
+      labware = build(:labware_with_receptacles_with_metadata)
+      labware.metadata.last.key = nil
+
+      @labware_json = {
+          data: {
+              attributes: {
+                  external_id: labware.external_id,
+                  barcode_prefix: 'TEST',
+                  barcode_info: 'XYZ'
+              },
+              relationships: {
+                  labware_type: {
+                      data: {
+                          attributes: {
+                              name: labware.labware_type.name
+                          }
+                      }
+                  },
+                  metadata: {
+                      data: labware.metadata.map { |metadatum| {attributes: {key: metadatum.key, value: metadatum.value}} }
+                  }
+              }
+          }
+      }
+
+      expect { post_json }.to   change { Labware.count }.by(0)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Receptacle.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
+
+      expect(response).to be_unprocessable
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labware_json).to include(:'metadata.key')
+      expect(labware_json[:'metadata.key']).to include('can\'t be blank')
     end
   end
 
@@ -498,8 +671,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { update_labware }.to change { Labware.count }.by(0)
-                                       .and change { LabwareType.count }.by(0)
+      expect { update_labware  }.to  change { Labware.count }.by(0)
+                                .and change { LabwareType.count }.by(0)
+                                .and change { Metadatum.count }.by(0)
       expect(response).to be_success
 
       new_labware = Labware.find(@labware.id)
@@ -507,10 +681,7 @@ describe Api::V1::LabwaresController, type: :request do
       expect(new_labware.external_id).to eq(@labware.external_id + '_changed')
       expect(new_labware.barcode).to eq(@labware.barcode + '_changed')
 
-      post_response = response
-      get api_v1_labware_path(new_labware.uuid)
-      get_response = response
-      expect(post_response.body).to eq(get_response.body)
+      check_response_is_same
     end
 
     it "should not be able to change the labware type" do
@@ -531,8 +702,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { update_labware }.to change { Labware.count }.by(0)
-                                       .and change { LabwareType.count }.by(0)
+      expect { update_labware  }.to   change { Labware.count }.by(0)
+                                .and  change { LabwareType.count }.by(0)
+                                .and  change { Metadatum.count }.by(0)
       expect(response).to be_unprocessable
 
       response_json = JSON.parse(response.body, symbolize_names: true)
@@ -553,8 +725,9 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { update_labware }.to change { Labware.count }.by(0)
-                                       .and change { LabwareType.count }.by(0)
+      expect { update_labware  }.to   change { Labware.count }.by(0)
+                                .and  change { LabwareType.count }.by(0)
+                                .and  change { Metadatum.count }.by(0)
       expect(response).to be_success
 
       new_labware = Labware.find(@labware.id)
@@ -563,10 +736,7 @@ describe Api::V1::LabwaresController, type: :request do
       expect(new_labware.barcode).to eq(@labware.barcode + '_changed')
       expect(new_labware.labware_type).to eq(@labware.labware_type)
 
-      post_response = response
-      get api_v1_labware_path(new_labware.uuid)
-      get_response = response
-      expect(post_response.body).to eq(get_response.body)
+      check_response_is_same
     end
 
     it 'should allow external_id to be set to blank' do
@@ -581,19 +751,17 @@ describe Api::V1::LabwaresController, type: :request do
           }
       }
 
-      expect { update_labware }.to change { Labware.count }.by(0)
-                                       .and change { LabwareType.count }.by(0)
-                                       .and change { Receptacle.count }.by(0)
+      expect { update_labware }.to  change { Labware.count }.by(0)
+                               .and change { LabwareType.count }.by(0)
+                               .and change { Receptacle.count }.by(0)
+                               .and change { Metadatum.count }.by(0)
       expect(response).to be_success
 
       new_labware = Labware.find(@labware.id)
 
       expect(new_labware.external_id).to eq('')
 
-      post_response = response
-      get api_v1_labware_path(new_labware.uuid)
-      get_response = response
-      expect(post_response.body).to eq(get_response.body)
+      check_response_is_same
     end
 
     it 'should be able to add a material_uuid to a receptacle' do
@@ -625,9 +793,10 @@ describe Api::V1::LabwaresController, type: :request do
         }
       }
 
-      expect { update_labware }.to change { Labware.count }.by(0)
-                                       .and change { LabwareType.count }.by(0)
-                                       .and change { Receptacle.count }.by(0)
+      expect { update_labware }.to  change { Labware.count }.by(0)
+                               .and change { LabwareType.count }.by(0)
+                               .and change { Receptacle.count }.by(0)
+                               .and change { Metadatum.count }.by(0)
       expect(response).to be_success
 
       new_labware = Labware.find(@labware.id)
@@ -667,9 +836,10 @@ describe Api::V1::LabwaresController, type: :request do
         }
       }
 
-      expect { update_labware }.to change { Labware.count }.by(0)
-                                       .and change { LabwareType.count }.by(0)
-                                       .and change { Receptacle.count }.by(0)
+      expect { update_labware }.to  change { Labware.count }.by(0)
+                               .and change { LabwareType.count }.by(0)
+                               .and change { Receptacle.count }.by(0)
+                               .and change { Metadatum.count }.by(0)
       expect(response).to be_success
 
       new_labware = Labware.find(@labware.id)
@@ -709,9 +879,10 @@ describe Api::V1::LabwaresController, type: :request do
         }
       }
 
-      expect { update_labware }.to change { Labware.count }.by(0)
-                                       .and change { LabwareType.count }.by(0)
-                                       .and change { Receptacle.count }.by(0)
+      expect { update_labware }.to  change { Labware.count }.by(0)
+                               .and change { LabwareType.count }.by(0)
+                               .and change { Receptacle.count }.by(0)
+                               .and change { Metadatum.count }.by(0)
       expect(response).to be_success
 
       new_labware = Labware.find(@labware.id)
@@ -720,6 +891,173 @@ describe Api::V1::LabwaresController, type: :request do
         expect(new_receptacle.material_uuid).to eq(receptacle.material_uuid)
         expect(new_receptacle.location).to eq(receptacle.location)
       }
+    end
+
+    it 'should update the existing labware metadata' do
+      @labware = create(:labware_with_receptacles_with_metadata)
+      changed_value = "_changed"
+
+      @labware_json = {
+          data: {
+              relationships: {
+                  metadata: {
+                      data: @labware.metadata.map { |metadatum| {attributes: {key: metadatum.key, value: metadatum.value + changed_value}} }
+                  }
+              }
+          }
+      }
+
+      expect { update_labware  }.to  change { Labware.count }.by(0)
+                                .and change { LabwareType.count }.by(0)
+                                .and change { Metadatum.count }.by(0)
+      expect(response).to be_success
+
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labware_json[:data][:relationships][:metadata][:data].size).to eq(@labware.metadata.size)
+      labware_json[:data][:relationships][:metadata][:data].zip(@labware.metadata) do |new_metadata, old_metadata|
+        expect(new_metadata[:id]).to eq(old_metadata.id.to_s)
+      end
+      expect(labware_json[:included].select { |obj| obj[:type] == "metadata" }.size).to eq(@labware.metadata.size)
+      @labware.metadata.each do |metadatum|
+        metadatum_json = labware_json[:included].find { |obj| obj[:type] == "metadata" and obj[:id] == metadatum.id.to_s }
+        expect(metadatum_json[:attributes][:key]).to eq(metadatum.key)
+        expect(metadatum_json[:attributes][:value]).to eq(metadatum.value + changed_value)
+      end
+
+      new_labware = Labware.find(@labware.id)
+      new_labware.metadata.zip(@labware.metadata).each do |new_metadata, old_metadata|
+        expect(new_metadata.id).to eq(old_metadata.id)
+        expect(new_metadata.key).to eq(old_metadata.key)
+        expect(new_metadata.value).to eq(old_metadata.value + changed_value)
+      end
+    end
+
+    it 'should add additional metadata to the labware' do
+      @labware = create(:labware_with_receptacles_with_metadata)
+      new_metadatum = build(:metadatum)
+
+      @labware_json = {
+          data: {
+              relationships: {
+                  metadata: {
+                      data: (@labware.metadata + [new_metadatum]).map { |metadatum| {attributes: {key: metadatum.key, value: metadatum.value}} }
+                  }
+              }
+          }
+      }
+
+      expect { update_labware  }.to  change { Labware.count }.by(0)
+                                .and change { LabwareType.count }.by(0)
+                                .and change { Metadatum.count }.by(1)
+      expect(response).to be_success
+
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labware_json[:data][:relationships][:metadata][:data].size).to eq(@labware.metadata.size + 1)
+      labware_json[:data][:relationships][:metadata][:data][0...@labware.metadata.size].zip(@labware.metadata) do |new_metadata, old_metadata|
+        expect(new_metadata[:id]).to eq(old_metadata.id.to_s)
+      end
+
+      expect(labware_json[:included].select { |obj| obj[:type] == "metadata" }.size).to eq(@labware.metadata.size + 1)
+      (@labware.metadata).each do |metadatum|
+        metadatum_json = labware_json[:included].find { |obj| obj[:type] == "metadata" and obj[:id] == metadatum.id.to_s }
+        expect(metadatum_json[:attributes][:key]).to eq(metadatum.key)
+        expect(metadatum_json[:attributes][:value]).to eq(metadatum.value)
+      end
+      new_metadatum_json = labware_json[:included].last
+      expect(new_metadatum_json[:attributes][:key]).to eq(new_metadatum.key)
+      expect(new_metadatum_json[:attributes][:value]).to eq(new_metadatum.value)
+
+      new_labware = Labware.find(@labware.id)
+      new_labware.metadata[0...@labware.metadata.size].zip(@labware.metadata).each do |new_metadata, old_metadata|
+        expect(new_metadata.id).to eq(old_metadata.id)
+        expect(new_metadata.key).to eq(old_metadata.key)
+        expect(new_metadata.value).to eq(old_metadata.value)
+      end
+
+      expect(Metadatum.last.key).to eq(new_metadatum.key)
+      expect(Metadatum.last.value).to eq(new_metadatum.value)
+    end
+
+    it 'should keep all old metadata if none are provided' do
+      @labware = create(:labware_with_receptacles_with_metadata)
+
+      @labware_json = {
+          data: {
+              attributes: {},
+              relationships: {}
+          }
+      }
+
+      expect { update_labware  }.to  change { Labware.count }.by(0)
+                                .and change { LabwareType.count }.by(0)
+                                .and change { Metadatum.count }.by(0)
+      expect(response).to be_success
+
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labware_json[:data][:relationships][:metadata][:data].size).to eq(@labware.metadata.size)
+      expect(Labware.find(@labware.id).metadata).to eq(@labware.metadata)
+    end
+
+    it 'should not alter the database if the request is unsuccessful' do
+      @labware = create(:labware_with_receptacles_with_metadata)
+      new_metadatum = build(:metadatum)
+      new_metadatum.key = nil
+
+      @labware_json = {
+          data: {
+              attributes: {
+                  external_id: @labware.external_id + '_changed',
+                  barcode: @labware.barcode + '_changed'
+              },
+              relationships: {
+                  receptacles: {
+                    data: [
+                      {
+                        attributes: {
+                          material_uuid: @labware.receptacles.first.material_uuid
+                        },
+                        relationships: {
+                          location: {
+                            data: {
+                              attributes: {
+                                name: @labware.receptacles.first.location.name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  metadata: {
+                      data: (@labware.metadata + [new_metadatum]).map { |metadatum| {attributes: {key: metadatum.key, value: metadatum.value}} }
+                  }
+              }
+          }
+      }
+
+      expect { update_labware  }.to  change { Labware.count }.by(0)
+                                .and change { LabwareType.count }.by(0)
+                                .and change { Metadatum.count }.by(0)
+      expect(response).to be_unprocessable
+
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      new_labware = Labware.find(@labware.id)
+      expect(new_labware.external_id).to eq(@labware.external_id)
+      expect(new_labware.barcode).to eq(@labware.barcode)
+
+      expect(new_labware.metadata.first.value).to eq(@labware.metadata.first.value)
+      expect(new_labware.metadata.size).to eq(@labware.metadata.size)
+      new_labware.metadata.zip(@labware.metadata).each { |new_metadatum, metadatum|
+        expect(new_metadatum.key).to eq(metadatum.key)
+        expect(new_metadatum.value).to eq(metadatum.value)
+      }
+
+      expect(labware_json).to include(:'metadatum.key')
+      expect(labware_json[:'metadatum.key']).to include("can't be blank")
     end
   end
 end

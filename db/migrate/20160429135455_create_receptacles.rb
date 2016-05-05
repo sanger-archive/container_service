@@ -1,3 +1,5 @@
+# See README.md for copyright details
+
 class CreateReceptacles < ActiveRecord::Migration[5.0]
   def change
     create_table :receptacles do |t|

@@ -1,3 +1,5 @@
+# See README.md for copyright details
+
 require 'rails_helper'
 require 'uuid'
 
