@@ -1056,8 +1056,8 @@ describe Api::V1::LabwaresController, type: :request do
         expect(new_metadatum.value).to eq(metadatum.value)
       }
 
-      expect(labware_json).to include(:'metadatum.key')
-      expect(labware_json[:'metadatum.key']).to include("can't be blank")
+      expect(labware_json).to include(:'metadata.key')
+      expect(labware_json[:'metadata.key']).to include("can't be blank")
     end
   end
 end

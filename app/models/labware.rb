@@ -19,7 +19,6 @@ class Labware < ApplicationRecord
   validates :barcode_prefix, presence: true, if: 'barcode.nil?'
   validate  :one_location_per_receptacle, if: :labware_type
   validate  :labware_type_immutable
-  validates :metadata, gather_attribute_errors: true
 
   private
 
