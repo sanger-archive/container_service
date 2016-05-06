@@ -59,6 +59,23 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
       end
     end
 
+    metadata = @labware ? @labware.metadata.map { |metadatum| {id: metadatum.id, key: metadatum.key, value: metadatum.value} } : []
+    if labware_json_params and
+        labware_json_params[:relationships] and
+        labware_json_params[:relationships][:metadata] and
+        labware_json_params[:relationships][:metadata][:data]
+
+      labware_json_params[:relationships][:metadata][:data].each { |metadatum|
+        metadatum = metadatum[:attributes]
+        existing_metadatum = metadata.find { |m| m[:key] == metadatum[:key] }
+        if existing_metadatum
+          existing_metadatum[:value] = metadatum[:value]
+        else
+          metadata << {key: metadatum[:key], value: metadatum[:value]}
+        end
+      }
+    end
+
     receptacles_attributes = labware_type ? labware_type.layout.locations.map { |location| {location: location} } : []
 
     if @labware
@@ -79,7 +96,7 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
       }
     end 
 
-    params.merge(labware_type: labware_type, receptacles_attributes: receptacles_attributes)
+    params.merge(labware_type: labware_type, metadata_attributes: metadata, receptacles_attributes: receptacles_attributes)
   end
 
   def labware_json_params
@@ -94,13 +111,14 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
               attributes: [:material_uuid], 
               relationships: {location: {data: {attributes: [:name]}}}
             ]
-          }
+          },
+          metadata: { data: { attributes: [:key, :value] } }
         }
       ]
     )
   end
 
   def included_relations_to_render
-    [:labware_type, :receptacles, "receptacles.location"]
+    [:labware_type, :receptacles, :metadata, "receptacles.location"]
   end
 end

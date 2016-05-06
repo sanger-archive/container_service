@@ -1,3 +1,5 @@
+# See README.md for copyright details
+
 class CreateLabwares < ActiveRecord::Migration[5.0]
   def change
     create_table :labwares do |t|

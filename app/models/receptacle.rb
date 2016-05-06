@@ -1,3 +1,5 @@
+# See README.md for copyright details
+
 class Receptacle < ApplicationRecord
   belongs_to  :labware, inverse_of: :receptacles
   belongs_to  :location

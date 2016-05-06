@@ -1,20 +1,24 @@
+# See README.md for copyright details
+
 class Labware < ApplicationRecord
   belongs_to  :labware_type
   has_many    :receptacles, inverse_of: :labware
+  has_many    :metadata, inverse_of: :labware
 
   accepts_nested_attributes_for :receptacles
+  accepts_nested_attributes_for :metadata
 
   attr_accessor :barcode_prefix
   attr_accessor :barcode_info
 
-  after_initialize :generate_uuid, if: 'uuid.nil?'
-  after_save :generate_barcode, if: 'barcode.nil?'
+  after_initialize  :generate_uuid, if: 'uuid.nil?'
+  after_save        :generate_barcode, if: 'barcode.nil?'
   
   validates :uuid, uniqueness: {case_sensitive: false}, uuid: true
   validates :barcode, uniqueness: {case_sensitive: false}
   validates :barcode_prefix, presence: true, if: 'barcode.nil?'
-  validate :one_location_per_receptacle, if: :labware_type
-  validate :labware_type_immutable
+  validate  :one_location_per_receptacle, if: :labware_type
+  validate  :labware_type_immutable
 
   private
 

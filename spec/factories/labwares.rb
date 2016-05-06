@@ -1,3 +1,5 @@
+# See README.md for copyright details
+
 require 'uuid'
 
 FactoryGirl.define do
@@ -18,6 +20,10 @@ FactoryGirl.define do
       receptacles_attributes { labware_type.layout.locations.map { |location| 
         {location: location}
       }}
+
+      factory :labware_with_receptacles_with_metadata, parent: :labware_with_receptacles do
+        metadata { build_list :metadatum, 3 }
+      end
     end
 
     factory :labware_with_receptacles_with_material, parent: :labware do
