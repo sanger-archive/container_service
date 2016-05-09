@@ -50,7 +50,7 @@ It can create, read and update a container (labware) and also add additional met
             ]
         }
 
-## Labware Type [/labware_types/{id}]
+## Labware Type [/labware_types/{labware_id}]
         
 ### Get a Labware Type [GET]
 
@@ -140,7 +140,7 @@ This action response with the queried labware type data.
             ]
         }
         
-## Layout [/layouts/{id}]
+## Layout [/layouts/{layout_id}]
         
 ### Get a Layout [GET]
 
@@ -341,7 +341,7 @@ This action response with the queried layout data.
           ]
         }
 
-## Labware [/labwares/{uuid}]
+## Labware [/labwares/{labware_uuid}]
         
 ### Get a Labware [GET]
 
@@ -363,6 +363,22 @@ This action response with the queried labware data.
                   "id": "1",
                   "type": "labware-types"
                 }
+              },
+              "metadata": {
+                "data": [
+                  {
+                    "id": "63",
+                    "type": "metadata"
+                  },
+                  {
+                    "id": "64",
+                    "type": "metadata"
+                  },
+                  {
+                    "id": "65",
+                    "type": "metadata"
+                  }
+                ]
               },
               "receptacles": {
                 "data": [
@@ -493,17 +509,41 @@ This action response with the queried labware data.
                 "key": "test_key_3",
                 "value": "test_value_3"
               }
+            },
+            {
+              "id": "63",
+              "type": "metadata",
+              "attributes": {
+                "key": "metadatum key 1",
+                "value": "metadatum value 1"
+              }
+            },
+            {
+              "id": "64",
+              "type": "metadata",
+              "attributes": {
+                "key": "metadatum key 2",
+                "value": "metadatum value 2"
+              }
+            },
+            {
+              "id": "65",
+              "type": "metadata",
+              "attributes": {
+                "key": "metadatum key 3",
+                "value": "metadatum value 3"
+              }
             }
           ]
         }
 
-## Labware creation [/labwares/ POST]
+## Labware creation [/labwares/]
 
 You can create a new Labware using this action. It takes a JSON-API compatible
 object containing data of the new Labware. It is mandatory to has a Labware Type relationship.
 It is optional to the labware to has one or more metadata relationship(s).
 
-### Create a new empty Labware without attached metadata
+### Create a new empty Labware without attached metadata [POST]
 
 + Request (application/vnd.api+json)
 
@@ -645,7 +685,7 @@ It is optional to the labware to has one or more metadata relationship(s).
                 ]
             }
 
-### Create a new empty Labware with a given barcode
+### Create a new empty Labware with a given barcode [POST]
 
 + Request (application/vnd.api+json)
 
@@ -786,7 +826,7 @@ It is optional to the labware to has one or more metadata relationship(s).
                 ]
             }
 
-### Create a new empty Labware with a given UUID
+### Create a new empty Labware with a given UUID [POST]
 
 + Request (application/vnd.api+json)
 
@@ -928,7 +968,208 @@ It is optional to the labware to has one or more metadata relationship(s).
                 ]
             }
 
-### Create a new Labware with materials
+### Create a new Labware with metadata [POST]
+
++ Request (application/vnd.api+json)
+
+        {
+            "data": {
+                "attributes": {
+                    "barcode_info": "XYZ",
+                    "barcode_prefix": "TEST",
+                    "external_id": "TICKET_34"
+                },
+                "relationships": {
+                    "labware_type": {
+                        "data": {
+                            "attributes": {
+                                "name": "test_plate_2"
+                            }
+                        }
+                    },
+                    "metadata": {
+                        "data": [
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 13",
+                                    "value": "metadatum value 13"
+                                }
+                            },
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 14",
+                                    "value": "metadatum value 14"
+                                }
+                            },
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 15",
+                                    "value": "metadatum value 15"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+
++ Response 201 (application/vnd.api+json)
+
+    + Headers
+
+            Location: /labwares/89b8ebb0-f7f6-0133-e4e9-2cbc32c89153
+
+    + Body
+
+            {
+                "data": {
+                    "attributes": {
+                        "barcode": "TEST_XYZ_6_changed",
+                        "external-id": "TICKET_34"
+                    },
+                    "id": "89b8ebb0-f7f6-0133-e4e9-2cbc32c89153",
+                    "relationships": {
+                        "labware-type": {
+                            "data": {
+                                "id": "1",
+                                "type": "labware-types"
+                            }
+                        },
+                        "metadata": {
+                            "data": [
+                                {
+                                    "id": "4",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "5",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "6",
+                                    "type": "metadata"
+                                }
+                            ]
+                        },
+                        "receptacles": {
+                            "data": [
+                                {
+                                    "id": "11",
+                                    "type": "receptacles"
+                                },
+                                {
+                                    "id": "12",
+                                    "type": "receptacles"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "labwares"
+                },
+                "included": [
+                    {
+                        "attributes": {
+                            "name": "test_plate_2"
+                        },
+                        "id": "1",
+                        "relationships": {
+                            "layout": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "layouts"
+                                }
+                            }
+                        },
+                        "type": "labware-types"
+                    },
+                    {
+                        "attributes": {
+                            "material-uuid": "ab9eb230-f408-0133-c33b-2cbc32c89153"
+                        },
+                        "id": "11",
+                        "relationships": {
+                            "location": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "locations"
+                                }
+                            }
+                        },
+                        "type": "receptacles"
+                    },
+                    {
+                        "attributes": {
+                            "name": "A1"
+                        },
+                        "id": "1",
+                        "relationships": {
+                            "layout": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "layouts"
+                                }
+                            }
+                        },
+                        "type": "locations"
+                    },
+                    {
+                        "attributes": {
+                            "material-uuid": "2979f980-f404-0133-c10b-2cbc32c89153"
+                        },
+                        "id": "12",
+                        "relationships": {
+                            "location": {
+                                "data": {
+                                    "id": "2",
+                                    "type": "locations"
+                                }
+                            }
+                        },
+                        "type": "receptacles"
+                    },
+                    {
+                        "attributes": {
+                            "name": "A2"
+                        },
+                        "id": "2",
+                        "relationships": {
+                            "layout": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "layouts"
+                                }
+                            }
+                        },
+                        "type": "locations"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 13",
+                            "value": "metadatum value 13"
+                        },
+                        "id": "4",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 14",
+                            "value": "metadatum value 14"
+                        },
+                        "id": "5",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 15",
+                            "value": "metadatum value 15"
+                        },
+                        "id": "6",
+                        "type": "metadata"
+                    }
+                ]
+            }
+
+### Create a new Labware with materials [POST]
 
 + Request (application/vnd.api+json)
 
@@ -1102,9 +1343,9 @@ It is optional to the labware to has one or more metadata relationship(s).
                 ]
             }
 
-## Labware update [/labwares/{uuid} PUT]
+## Labware update [/labwares/{labware_uuid} PUT]
 
-### Update an existing Labware with a barcode and external ticket ID
+### Update an existing Labware with a barcode and external ticket ID [PUT]
 
 + Request (application/vnd.api+json)
 
@@ -1236,7 +1477,7 @@ It is optional to the labware to has one or more metadata relationship(s).
                 ]
             }
 
-### Update an existing Labware: add a material to a receptacle
+### Update an existing Labware: add a material to a receptacle [PUT]
 
 + Request (application/vnd.api+json)
 
@@ -1384,7 +1625,7 @@ It is optional to the labware to has one or more metadata relationship(s).
                 ]
             }
 
-### Update an existing Labware: change a material in a receptacle
+### Update an existing Labware: change a material in a receptacle [PUT]
 
 + Request (application/vnd.api+json)
 
@@ -1417,7 +1658,7 @@ It is optional to the labware to has one or more metadata relationship(s).
 
     + Headers
 
-            Location: /labwares/9e5dbed0-f405-0133-c14e-2cbc32c89153
+            Location: /labwares/89b8ebb0-f7f6-0133-e4e9-2cbc32c89153
 
     + Body
 
@@ -1528,6 +1769,440 @@ It is optional to the labware to has one or more metadata relationship(s).
                             }
                         },
                         "type": "locations"
+                    }
+                ]
+            }
+    
+### Update the existing metadata [PUT]
+
++ Request (application/vnd.api+json)
+
+        {
+            "data": {
+                "relationships": {
+                    "metadata": {
+                        "data": [
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 13",
+                                    "value": "metadatum value 13_changed"
+                                }
+                            },
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 14",
+                                    "value": "metadatum value 14_changed"
+                                }
+                            },
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 15",
+                                    "value": "metadatum value 15_changed"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+
+
++ Response 200 (application/vnd.api+json)
+
+    + Headers
+
+            Location: /labwares/89b8ebb0-f7f6-0133-e4e9-2cbc32c89153
+
+    + Body
+
+            {
+                "data": {
+                    "attributes": {
+                        "barcode": "TEST_XYZ_6_changed",
+                        "external-id": "TICKET_34"
+                    },
+                    "id": "89b8ebb0-f7f6-0133-e4e9-2cbc32c89153",
+                    "relationships": {
+                        "labware-type": {
+                            "data": {
+                                "id": "1",
+                                "type": "labware-types"
+                            }
+                        },
+                        "metadata": {
+                            "data": [
+                                {
+                                    "id": "4",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "5",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "6",
+                                    "type": "metadata"
+                                }
+                            ]
+                        },
+                        "receptacles": {
+                            "data": [
+                                {
+                                    "id": "11",
+                                    "type": "receptacles"
+                                },
+                                {
+                                    "id": "12",
+                                    "type": "receptacles"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "labwares"
+                },
+                "included": [
+                    {
+                        "attributes": {
+                            "name": "test_plate_2"
+                        },
+                        "id": "1",
+                        "relationships": {
+                            "layout": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "layouts"
+                                }
+                            }
+                        },
+                        "type": "labware-types"
+                    },
+                    {
+                        "attributes": {
+                            "material-uuid": "ab9eb230-f408-0133-c33b-2cbc32c89153"
+                        },
+                        "id": "11",
+                        "relationships": {
+                            "location": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "locations"
+                                }
+                            }
+                        },
+                        "type": "receptacles"
+                    },
+                    {
+                        "attributes": {
+                            "name": "A1"
+                        },
+                        "id": "1",
+                        "relationships": {
+                            "layout": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "layouts"
+                                }
+                            }
+                        },
+                        "type": "locations"
+                    },
+                    {
+                        "attributes": {
+                            "material-uuid": "2979f980-f404-0133-c10b-2cbc32c89153"
+                        },
+                        "id": "12",
+                        "relationships": {
+                            "location": {
+                                "data": {
+                                    "id": "2",
+                                    "type": "locations"
+                                }
+                            }
+                        },
+                        "type": "receptacles"
+                    },
+                    {
+                        "attributes": {
+                            "name": "A2"
+                        },
+                        "id": "2",
+                        "relationships": {
+                            "layout": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "layouts"
+                                }
+                            }
+                        },
+                        "type": "locations"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 13",
+                            "value": "metadatum value 13_changed"
+                        },
+                        "id": "4",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 14",
+                            "value": "metadatum value 14_changed"
+                        },
+                        "id": "5",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 15",
+                            "value": "metadatum value 15_changed"
+                        },
+                        "id": "6",
+                        "type": "metadata"
+                    }
+                ]
+            }
+
+### Update labware with additional metadata [PUT]
+
++ Request (application/vnd.api+json)
+
+        {
+            "data": {
+                "relationships": {
+                    "metadata": {
+                        "data": [
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 25",
+                                    "value": "metadatum value 25"
+                                }
+                            },
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 26",
+                                    "value": "metadatum value 26"
+                                }
+                            },
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 27",
+                                    "value": "metadatum value 27"
+                                }
+                            },
+                            {
+                                "attributes": {
+                                    "key": "metadatum key 28",
+                                    "value": "metadatum value 28"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+
+
++ Response 200 (application/vnd.api+json)
+
+    + Headers
+
+            Location: /labwares/89b8ebb0-f7f6-0133-e4e9-2cbc32c89153
+
+    + Body
+
+            {
+                "data": {
+                    "attributes": {
+                        "barcode": "TEST_XYZ_6_changed",
+                        "external-id": "TICKET_34"
+                    },
+                    "id": "89b8ebb0-f7f6-0133-e4e9-2cbc32c89153",
+                    "relationships": {
+                        "labware-type": {
+                            "data": {
+                                "id": "1",
+                                "type": "labware-types"
+                            }
+                        },
+                        "metadata": {
+                            "data": [
+                                {
+                                    "id": "4",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "5",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "6",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "7",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "8",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "9",
+                                    "type": "metadata"
+                                },
+                                {
+                                    "id": "10",
+                                    "type": "metadata"
+                                }
+                            ]
+                        },
+                        "receptacles": {
+                            "data": [
+                                {
+                                    "id": "11",
+                                    "type": "receptacles"
+                                },
+                                {
+                                    "id": "12",
+                                    "type": "receptacles"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "labwares"
+                },
+                "included": [
+                    {
+                        "attributes": {
+                            "name": "test_plate_2"
+                        },
+                        "id": "1",
+                        "relationships": {
+                            "layout": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "layouts"
+                                }
+                            }
+                        },
+                        "type": "labware-types"
+                    },
+                    {
+                        "attributes": {
+                            "material-uuid": "ab9eb230-f408-0133-c33b-2cbc32c89153"
+                        },
+                        "id": "11",
+                        "relationships": {
+                            "location": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "locations"
+                                }
+                            }
+                        },
+                        "type": "receptacles"
+                    },
+                    {
+                        "attributes": {
+                            "name": "A1"
+                        },
+                        "id": "1",
+                        "relationships": {
+                            "layout": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "layouts"
+                                }
+                            }
+                        },
+                        "type": "locations"
+                    },
+                    {
+                        "attributes": {
+                            "material-uuid": "2979f980-f404-0133-c10b-2cbc32c89153"
+                        },
+                        "id": "12",
+                        "relationships": {
+                            "location": {
+                                "data": {
+                                    "id": "2",
+                                    "type": "locations"
+                                }
+                            }
+                        },
+                        "type": "receptacles"
+                    },
+                    {
+                        "attributes": {
+                            "name": "A2"
+                        },
+                        "id": "2",
+                        "relationships": {
+                            "layout": {
+                                "data": {
+                                    "id": "1",
+                                    "type": "layouts"
+                                }
+                            }
+                        },
+                        "type": "locations"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 13",
+                            "value": "metadatum value 13_changed"
+                        },
+                        "id": "4",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 14",
+                            "value": "metadatum value 14_changed"
+                        },
+                        "id": "5",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 15",
+                            "value": "metadatum value 15_changed"
+                        },
+                        "id": "6",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 25",
+                            "value": "metadatum value 25"
+                        },
+                        "id": "7",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 26",
+                            "value": "metadatum value 26"
+                        },
+                        "id": "8",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 27",
+                            "value": "metadatum value 27"
+                        },
+                        "id": "9",
+                        "type": "metadata"
+                    },
+                    {
+                        "attributes": {
+                            "key": "metadatum key 28",
+                            "value": "metadatum value 28"
+                        },
+                        "id": "10",
+                        "type": "metadata"
                     }
                 ]
             }
