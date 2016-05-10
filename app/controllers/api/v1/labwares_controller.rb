@@ -3,18 +3,6 @@
 class Api::V1::LabwaresController < Api::V1::ApplicationController
   before_action :set_labware, only: [:show, :create, :update]
 
-  # GET /labwares
-  def index
-    @labwares = Labware.all
-
-    render json: @labwares, include: included_relations_to_render
-  end
-
-  # GET /labwares/1
-  def show
-    render json: @labware, include: included_relations_to_render
-  end
-
   # POST /labwares
   def create
     @labware = Labware.new(labware_params)
