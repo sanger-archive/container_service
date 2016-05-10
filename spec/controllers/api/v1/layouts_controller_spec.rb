@@ -59,6 +59,39 @@ describe Api::V1::LayoutsController, type: :request do
         validate_included(included_locations_json, layouts[n].locations)
       end
     end
+
+    it "should return the page size number of layout instances" do
+      layouts = create_list(:layout_with_locations, 10)
+      page_size = 4
+      page = 1
+
+      get api_v1_layouts_path, params: { page: page, page_size: page_size }
+      expect(response).to be_success
+
+      layouts_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(layouts_json[:data].count).to eq(page_size)
+    end
+
+    it "should return the correct layout instances with pagination" do
+      layouts = create_list(:layout_with_locations, 10)
+      page_size = 4
+      page = 2
+      layouts_on_2nd_page = layouts[4..7]
+
+      get api_v1_layouts_path, params: { page: page, page_size: page_size }
+      expect(response).to be_success
+
+      layouts_json = JSON.parse(response.body, symbolize_names: true)
+
+      layouts_json_count = layouts_json[:data].count
+
+      expect(layouts_json_count).to eq(page_size)
+
+      (0...layouts_json_count).each do |n|
+        validate_layout(layouts_json[:data][n], layouts_on_2nd_page[n])
+      end
+    end
   end
 
 end

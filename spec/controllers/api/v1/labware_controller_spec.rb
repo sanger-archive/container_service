@@ -118,6 +118,39 @@ describe Api::V1::LabwaresController, type: :request do
         validate_included_metadata(labwares_json[:included].select { |obj| obj[:type] == 'metadata' }, labwares[n].metadata)
       end
     end
+
+    it "should return the page size number of labware instances" do
+      labwares = create_list(:labware_with_receptacles_with_metadata, 10)
+      page_size = 4
+      page = 1
+
+      get api_v1_labwares_path, params: { page: page, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labwares_json[:data].count).to eq(page_size)
+    end
+
+    it "should return the correct labware instances with pagination" do
+      labwares = create_list(:labware_with_receptacles_with_metadata, 10)
+      page_size = 4
+      page = 2
+      labwares_on_2nd_page = labwares[4..7]
+
+      get api_v1_labwares_path, params: { page: page, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      labwares_json_count = labwares_json[:data].count
+
+      expect(labwares_json_count).to eq(page_size)
+
+      (0...labwares_json_count).each do |n|
+        validate_labware(labwares_json[:data][n], labwares_on_2nd_page[n])
+      end
+    end
   end
 
   describe 'POST #create' do
