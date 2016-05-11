@@ -109,4 +109,16 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
   def included_relations_to_render
     [:labware_type, :receptacles, :metadata, "receptacles.location"]
   end
+
+  def filter(params)
+    labwares = Labware
+    if params.has_key?("type")
+      labwares = Labware.joins(:labware_type).where(labware_types: { name: params[:type]} )
+    end
+    labwares
+  end
+
+  def query_params
+    params.slice(:type)
+  end
 end
