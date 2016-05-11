@@ -5,9 +5,9 @@ class Api::V1::ApplicationController < ActionController::API
   # GET /{plural_resource_name}
   def index
     plural_resource_name = "@#{resource_name.pluralize}"
-    resources = resource_class.where(query_params)
-                              .page(page_params[:page])
-                              .per(page_params[:page_size])
+    resources = filter(query_params)
+                  .page(page_params[:page])
+                  .per(page_params[:page_size])
 
     instance_variable_set(plural_resource_name, resources)
     resource = instance_variable_get(plural_resource_name)
@@ -31,15 +31,19 @@ class Api::V1::ApplicationController < ActionController::API
     []
   end
 
+  # Returns the filtered array of resources
+  # Override this method in each API controller
+  # to implement the filter logic
+  # @return [Class]
+  def filter(query_params)
+    resource_class
+  end
+
   # Returns the allowed parameters for searching
   # Override this method in each API controller
   # to permit additional parameters to search on
   # @return [Hash]
   def query_params
-    {}
-  end
-
-  def query_sort
     {}
   end
 

@@ -151,6 +151,38 @@ describe Api::V1::LabwaresController, type: :request do
         validate_labware(labwares_json[:data][n], labwares_on_2nd_page[n])
       end
     end
+
+    it "should return the correct labware instances when searching by type" do
+      labware_type = create(:labware_type)
+      labware_type2 = create(:labware_type)
+      labwares = create_list(:labware_with_receptacles_with_metadata, 15, labware_type: labware_type)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15, labware_type: labware_type2)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { type: labware_type.name, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(labwares.size + labwares2.size)
+      expect(labwares_json[:data].size).to eq(labwares.size)
+    end
+
+    it "should not return any labware instance when searching by not correct type" do
+      labware_type = create(:labware_type)
+      labware_type2 = create(:labware_type)
+      labwares = create_list(:labware_with_receptacles_with_metadata, 15, labware_type: labware_type)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15, labware_type: labware_type2)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { type: labware_type.name + "_not_matching", page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(labwares.size + labwares2.size)
+      expect(labwares_json[:data].size).to eq(0)
+    end
   end
 
   describe 'POST #create' do
