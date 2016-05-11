@@ -111,14 +111,25 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
   end
 
   def filter(params)
-    labwares = Labware
-    if params.has_key?("type")
-      labwares = Labware.joins(:labware_type).where(labware_types: { name: params[:type]} )
+    where_opts = {}
+    filter = nil
+    params.each do |param_key, param_value|
+      current_filter = "Api::V1::Filters::Labware#{param_key.camelize}Filter".constantize.filter(params)
+      unless (current_filter)
+        filter = Labware.none
+        break
+      end
+      where_opts.merge!(current_filter)
     end
-    labwares
+
+    unless (filter)
+      filter = Labware.where(where_opts)
+    end
+
+    filter
   end
 
   def query_params
-    params.slice(:type)
+    params.slice(:type, :barcode, :external_id)
   end
 end
