@@ -166,6 +166,7 @@ describe Api::V1::LabwaresController, type: :request do
 
       expect(Labware.all.size).to eq(labwares.size + labwares2.size)
       expect(labwares_json[:data].size).to eq(labwares.size)
+      validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labware_type.id.to_s and obj[:type] == 'labware-types' }, labware_type)
     end
 
     it "should not return any labware instance when searching by not correct type" do
@@ -183,6 +184,92 @@ describe Api::V1::LabwaresController, type: :request do
       expect(Labware.all.size).to eq(labwares.size + labwares2.size)
       expect(labwares_json[:data].size).to eq(0)
     end
+
+    it "should return the correct labware instances when searching by barcode" do
+      barcode = "test_barcode test"
+      labwares = create_list(:labware_with_receptacles_with_metadata, 1, barcode: barcode)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { barcode: barcode, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(labwares.size + labwares2.size)
+      expect(labwares_json[:data].size).to eq(labwares.size)
+      expect(labwares_json[:data][0][:attributes][:barcode]).to eq(barcode)
+    end
+
+    it "should not return any labware instance when searching by not correct barcode" do
+      barcode = "test_barcode test"
+      barcode_not_matching = "1234"
+      labwares = create_list(:labware_with_receptacles_with_metadata, 1, barcode: barcode)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { barcode: barcode_not_matching, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(labwares.size + labwares2.size)
+      expect(labwares_json[:data].size).to eq(0)
+    end
+
+    it "should return the correct labware instances when searching by external id" do
+      external_id = "external_id"
+      labwares = create_list(:labware_with_receptacles_with_metadata, 1, external_id: external_id)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { external_id: external_id, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(labwares.size + labwares2.size)
+      expect(labwares_json[:data].size).to eq(labwares.size)
+      expect(labwares_json[:data][0][:attributes][:"external-id"]).to eq(external_id)
+    end
+
+    it "should not return any labware instance when searching by not correct external id" do
+      external_id = "external_id"
+      external_id_not_matching = "1234_external_id"
+      labwares = create_list(:labware_with_receptacles_with_metadata, 1, external_id: external_id)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { external_id: external_id_not_matching, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(labwares.size + labwares2.size)
+      expect(labwares_json[:data].size).to eq(0)
+    end
+
+    it "should return the correct labware instances when searching by type and barcode and external id" do
+      labware_type = create(:labware_type)
+      barcode = "test_barcode test"
+      external_id = "external_id"
+      labwares = create_list(:labware_with_receptacles_with_metadata, 1,
+        external_id: external_id, labware_type: labware_type, barcode: barcode)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { external_id: external_id, labware_type: labware_type, barcode: barcode, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(labwares.size + labwares2.size)
+      expect(labwares_json[:data].size).to eq(labwares.size)
+      validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labware_type.id.to_s and obj[:type] == 'labware-types' }, labware_type)
+      expect(labwares_json[:data][0][:attributes][:barcode]).to eq(barcode)
+      expect(labwares_json[:data][0][:attributes][:"external-id"]).to eq(external_id)
+    end
+
   end
 
   describe 'POST #create' do
