@@ -112,21 +112,11 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
 
   def filter(params)
     where_opts = {}
-    filter = nil
     params.each do |param_key, param_value|
-      current_filter = "Api::V1::Filters::Labware#{param_key.camelize}Filter".constantize.filter(params)
-      unless (current_filter)
-        filter = Labware.none
-        break
-      end
-      where_opts.merge!(current_filter)
+      where_opts.merge!("Api::V1::Filters::Labware#{param_key.camelize}Filter".constantize.filter(params))
     end
 
-    unless (filter)
-      filter = Labware.where(where_opts)
-    end
-
-    filter
+    Labware.where(where_opts)
   end
 
   def query_params
