@@ -159,7 +159,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15, labware_type: labware_type2)
       page_size = 100
 
-      get api_v1_labwares_path, params: { type: labware_type.name, page_size: page_size }
+      get api_v1_labwares_path, params: { labware_type: labware_type.name, page_size: page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -176,7 +176,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15, labware_type: labware_type2)
       page_size = 100
 
-      get api_v1_labwares_path, params: { type: labware_type.name + "_not_matching", page_size: page_size }
+      get api_v1_labwares_path, params: { labware_type: labware_type.name + "_not_matching", page_size: page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -253,23 +253,117 @@ describe Api::V1::LabwaresController, type: :request do
       labware_type = create(:labware_type)
       barcode = "test_barcode test"
       external_id = "external_id"
-      labwares = create_list(:labware_with_receptacles_with_metadata, 1,
+      labware = create(:labware_with_receptacles_with_metadata,
         external_id: external_id, labware_type: labware_type, barcode: barcode)
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { external_id: external_id, labware_type: labware_type, barcode: barcode, page_size: page_size }
+      get api_v1_labwares_path, params: { external_id: external_id, labware_type: labware_type.name, barcode: barcode, page_size: page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
 
-      expect(Labware.all.size).to eq(labwares.size + labwares2.size)
-      expect(labwares_json[:data].size).to eq(labwares.size)
+      expect(Labware.all.size).to eq(1 + labwares2.size)
+      expect(labwares_json[:data].size).to eq(1)
       validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labware_type.id.to_s and obj[:type] == 'labware-types' }, labware_type)
       expect(labwares_json[:data][0][:attributes][:barcode]).to eq(barcode)
       expect(labwares_json[:data][0][:attributes][:"external-id"]).to eq(external_id)
     end
 
+    it "should return all labware instances that's creation date less than the given date when searching by before" do
+      before_creation_date = DateTime.new(2006,1,1)
+      (2001..2010).each do |year|
+        create(:labware_with_receptacles_with_metadata, created_at: DateTime.new(year,1,1))
+      end
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { created_before: before_creation_date, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(25)
+      expect(labwares_json[:data].size).to eq(6)
+      labwares_json[:data].each do |labware_json_data|
+        expect(labware_json_data[:attributes][:"created-at"].to_datetime).to be <= before_creation_date
+      end
+    end
+
+    it "should not return any labware instances that's creation date greater than the given date when searching by before" do
+      before_creation_date = DateTime.new(1986,5,12)
+      (2001..2010).each do |year|
+        create(:labware_with_receptacles_with_metadata, created_at: DateTime.new(year,1,1))
+      end
+      page_size = 100
+
+      get api_v1_labwares_path, params: { created_before: before_creation_date, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(10)
+      expect(labwares_json[:data].size).to eq(0)
+    end
+
+    it "should return all labware instances that's creation date greater than the given date when searching by after" do
+      early_creation_date = DateTime.new(1999,1,1)
+      after_creation_date = DateTime.new(2006,2,1)
+      (2001..2010).each do |year|
+        create(:labware_with_receptacles_with_metadata, created_at: DateTime.new(year,1,1))
+      end
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15, created_at: early_creation_date)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { created_after: after_creation_date, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(25)
+      expect(labwares_json[:data].size).to eq(4)
+      labwares_json[:data].each do |labware_json_data|
+        expect(labware_json_data[:attributes][:"created-at"].to_datetime).to be >= after_creation_date
+      end
+    end
+
+    it "should not return any labware instances that's creation date less than the given date when searching by after" do
+      after_creation_date = DateTime.new(2100,5,12)
+      (2001..2010).each do |year|
+        create(:labware_with_receptacles_with_metadata, created_at: DateTime.new(year,1,1))
+      end
+      page_size = 100
+
+      get api_v1_labwares_path, params: { created_after: after_creation_date, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(10)
+      expect(labwares_json[:data].size).to eq(0)
+    end
+
+    it "should return all labware instances that's creation date between the given dates when searching by before and after" do
+      before_creation_date = DateTime.new(2006,9,1)
+      after_creation_date =  DateTime.new(2003,2,1)
+      (2001..2010).each do |year|
+        create(:labware_with_receptacles_with_metadata, created_at: DateTime.new(year,1,1))
+      end
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { created_after: after_creation_date, created_before: before_creation_date, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(25)
+      expect(labwares_json[:data].size).to eq(3)
+      labwares_json[:data].each do |labware_json_data|
+        expect(labware_json_data[:attributes][:"created-at"].to_datetime).to be <= before_creation_date
+        expect(labware_json_data[:attributes][:"created-at"].to_datetime).to be >= after_creation_date
+      end
+    end
   end
 
   describe 'POST #create' do
