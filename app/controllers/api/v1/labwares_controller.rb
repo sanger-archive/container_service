@@ -111,15 +111,16 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
   end
 
   def filter(params)
-    where_opts = {}
+    labwares = Labware
     params.each do |param_key, param_value|
-      where_opts.merge!("Api::V1::Filters::Labware#{param_key.camelize}Filter".constantize.filter(params))
+      labwares = labwares.where("Api::V1::Filters::#{param_key.camelize}Filter".constantize.filter(params))
     end
 
-    Labware.where(where_opts)
+    labwares
   end
 
   def query_params
-    params.slice(:type, :barcode, :external_id)
+    params.slice(:labware_type, :barcode, :barcode_prefix, :barcode_info,
+      :external_id, :created_before, :created_after)
   end
 end

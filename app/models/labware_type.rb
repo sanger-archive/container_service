@@ -3,5 +3,5 @@
 class LabwareType < ApplicationRecord
   belongs_to  :layout
 
-  validates   :name, presence: true
+  validates   :name, presence: true, uniqueness: {case_sensitive: false}
 end
