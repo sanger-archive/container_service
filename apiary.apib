@@ -9,6 +9,10 @@ It can create, read and update a container (labware) and also add additional met
 
 ### List All Labware Types [GET]
 
++ Parameters
+   + page%5Bnumber%5D (number, optional) - Which page of material batches to return
+   + page%5Bsize%5D (number, optional) - Number of material batches per page (default=10)
+
 + Response 200 (application/json)
 
         {
@@ -99,6 +103,10 @@ This action response with the queried labware type data.
 
 ### List All Layouts [GET]
 
++ Parameters
+   + page%5Bnumber%5D (number, optional) - Which page of material batches to return
+   + page%5Bsize%5D (number, optional) - Number of material batches per page (default=10)
+
 + Response 200 (application/json)
 
         {
@@ -188,6 +196,17 @@ This action response with the queried layout data.
 ## Labware Collection [/labwares]
 
 ### List All Labwares [GET]
+
++ Parameters
+   + page%5Bnumber%5D (number, optional) - Which page of material batches to return
+   + page%5Bsize%5D (number, optional) - Number of material batches per page (default=10)
+   + labware_type (string, optional) - Only show labware of this type
+   + barcode (string, optional) - Only show labware with this exact barcode
+   + barcode_prefix (string, optional) - Only show labware a barcode starting with this
+   + barcode_info (string, optional) - Only show labware a barcode containing this
+   + external_id (string, optional) - Only show labware with this external id
+   + created_after (dateTime, optional) - Only show labware made after this time
+   + created_before (dateTime, optional) - Only show labware made before this time
 
 + Response 200 (application/json)
 
