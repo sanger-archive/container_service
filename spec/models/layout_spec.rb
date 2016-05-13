@@ -18,4 +18,10 @@ RSpec.describe Layout, type: :model do
   it "should be invalid without any locations" do
     expect(build(:layout, locations: [])).to_not be_valid
   end
+
+  it "should be invalid with an already existed name" do
+    layout = create(:layout_with_locations)
+    expect(build(:layout_with_locations, name: layout.name)).to_not be_valid
+  end
+
 end
