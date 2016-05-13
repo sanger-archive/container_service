@@ -63,7 +63,7 @@ describe Api::V1::LabwareTypesController, type: :request do
       page_size = 4
       page = 1
 
-      get api_v1_labware_types_path, params: { page: page, page_size: page_size }
+      get api_v1_labware_types_path, params: { "page[number]": page, "page[size]": page_size }
       expect(response).to be_success
 
       labware_types_json = JSON.parse(response.body, symbolize_names: true)
@@ -77,7 +77,7 @@ describe Api::V1::LabwareTypesController, type: :request do
       page = 2
       labware_types_on_2nd_page = labware_types[4..7]
 
-      get api_v1_labware_types_path, params: { page: page, page_size: page_size }
+      get api_v1_labware_types_path, params: { "page[number]": page, "page[size]": page_size }
       expect(response).to be_success
 
       labware_types_json = JSON.parse(response.body, symbolize_names: true)
