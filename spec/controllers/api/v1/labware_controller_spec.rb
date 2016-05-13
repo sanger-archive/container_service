@@ -364,6 +364,70 @@ describe Api::V1::LabwaresController, type: :request do
         expect(labware_json_data[:attributes][:"created-at"].to_datetime).to be >= after_creation_date
       end
     end
+
+    it "should return the correct labware instances when searching by barcode prefix" do
+      barcode_prefix = "ABCD"
+      labware = create(:labware_with_receptacles_with_metadata, barcode_prefix: barcode_prefix)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { barcode_prefix: barcode_prefix, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(1 + labwares2.size)
+      expect(labwares_json[:data].size).to eq(1)
+      expect(labwares_json[:data][0][:attributes][:barcode]).to start_with(barcode_prefix)
+    end
+
+    it "should not return any labware instance when searching by not matching barcode_prefix prefix" do
+      barcode_prefix = "ABCD"
+      barcode_prefix_not_matching = "abc1"
+      labware = create(:labware_with_receptacles_with_metadata, barcode_prefix: barcode_prefix)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { barcode_prefix: barcode_prefix_not_matching, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(1 + labwares2.size)
+      expect(labwares_json[:data].size).to eq(0)
+    end
+
+    it "should return the correct labware instances when searching by barcode info" do
+      barcode_info = "ABCD"
+      labware = create(:labware_with_receptacles_with_metadata, barcode_info: barcode_info)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { barcode_info: barcode_info, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(1 + labwares2.size)
+      expect(labwares_json[:data].size).to eq(1)
+      expect(labwares_json[:data][0][:attributes][:barcode]).to include(barcode_info)
+    end
+
+    it "should not return any labware instance when searching by not matching barcode_info info" do
+      barcode_info = "ABCD"
+      barcode_info_not_matching = "abc1"
+      labware = create(:labware_with_receptacles_with_metadata, barcode_info: barcode_info)
+      labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
+      page_size = 100
+
+      get api_v1_labwares_path, params: { barcode_info: barcode_info_not_matching, page_size: page_size }
+      expect(response).to be_success
+
+      labwares_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(Labware.all.size).to eq(1 + labwares2.size)
+      expect(labwares_json[:data].size).to eq(0)
+    end
   end
 
   describe 'POST #create' do

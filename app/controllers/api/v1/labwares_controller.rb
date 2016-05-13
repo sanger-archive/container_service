@@ -120,6 +120,7 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
   end
 
   def query_params
-    params.slice(:labware_type, :barcode, :external_id, :created_before, :created_after)
+    params.slice(:labware_type, :barcode, :barcode_prefix, :barcode_info,
+      :external_id, :created_before, :created_after)
   end
 end
