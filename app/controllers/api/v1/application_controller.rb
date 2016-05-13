@@ -6,8 +6,8 @@ class Api::V1::ApplicationController < ActionController::API
   def index
     plural_resource_name = "@#{resource_name.pluralize}"
     resources = filter(query_params)
-                  .page(page_params[:page])
-                  .per(page_params[:page_size])
+                  .page(page_params[:number])
+                  .per(page_params[:size])
 
     instance_variable_set(plural_resource_name, resources)
     resource = instance_variable_get(plural_resource_name)
@@ -50,7 +50,7 @@ class Api::V1::ApplicationController < ActionController::API
   # Returns the allowed parameters for pagination
   # @return [Hash]
   def page_params
-    params.permit(:page, :page_size)
+    params.permit(page: [:number, :size])[:page] or {}
   end
 
   # The resource class based on the controller

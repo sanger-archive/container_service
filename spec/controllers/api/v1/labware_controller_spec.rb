@@ -124,7 +124,7 @@ describe Api::V1::LabwaresController, type: :request do
       page_size = 4
       page = 1
 
-      get api_v1_labwares_path, params: { page: page, page_size: page_size }
+      get api_v1_labwares_path, params: { "page[number]": page, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -138,7 +138,7 @@ describe Api::V1::LabwaresController, type: :request do
       page = 2
       labwares_on_2nd_page = labwares[4..7]
 
-      get api_v1_labwares_path, params: { page: page, page_size: page_size }
+      get api_v1_labwares_path, params: { "page[number]": page, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -159,7 +159,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15, labware_type: labware_type2)
       page_size = 100
 
-      get api_v1_labwares_path, params: { labware_type: labware_type.name, page_size: page_size }
+      get api_v1_labwares_path, params: { labware_type: labware_type.name, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -176,7 +176,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15, labware_type: labware_type2)
       page_size = 100
 
-      get api_v1_labwares_path, params: { labware_type: labware_type.name + "_not_matching", page_size: page_size }
+      get api_v1_labwares_path, params: { labware_type: labware_type.name + "_not_matching", "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -191,7 +191,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { barcode: barcode, page_size: page_size }
+      get api_v1_labwares_path, params: { barcode: barcode, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -208,7 +208,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { barcode: barcode_not_matching, page_size: page_size }
+      get api_v1_labwares_path, params: { barcode: barcode_not_matching, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -223,7 +223,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { external_id: external_id, page_size: page_size }
+      get api_v1_labwares_path, params: { external_id: external_id, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -240,7 +240,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { external_id: external_id_not_matching, page_size: page_size }
+      get api_v1_labwares_path, params: { external_id: external_id_not_matching, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -258,7 +258,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { external_id: external_id, labware_type: labware_type.name, barcode: barcode, page_size: page_size }
+      get api_v1_labwares_path, params: { external_id: external_id, labware_type: labware_type.name, barcode: barcode, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -278,7 +278,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { created_before: before_creation_date, page_size: page_size }
+      get api_v1_labwares_path, params: { created_before: before_creation_date, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -297,7 +297,7 @@ describe Api::V1::LabwaresController, type: :request do
       end
       page_size = 100
 
-      get api_v1_labwares_path, params: { created_before: before_creation_date, page_size: page_size }
+      get api_v1_labwares_path, params: { created_before: before_creation_date, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -315,7 +315,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15, created_at: early_creation_date)
       page_size = 100
 
-      get api_v1_labwares_path, params: { created_after: after_creation_date, page_size: page_size }
+      get api_v1_labwares_path, params: { created_after: after_creation_date, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -334,7 +334,7 @@ describe Api::V1::LabwaresController, type: :request do
       end
       page_size = 100
 
-      get api_v1_labwares_path, params: { created_after: after_creation_date, page_size: page_size }
+      get api_v1_labwares_path, params: { created_after: after_creation_date, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -352,7 +352,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { created_after: after_creation_date, created_before: before_creation_date, page_size: page_size }
+      get api_v1_labwares_path, params: { created_after: after_creation_date, created_before: before_creation_date, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -371,7 +371,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { barcode_prefix: barcode_prefix, page_size: page_size }
+      get api_v1_labwares_path, params: { barcode_prefix: barcode_prefix, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -388,7 +388,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { barcode_prefix: barcode_prefix_not_matching, page_size: page_size }
+      get api_v1_labwares_path, params: { barcode_prefix: barcode_prefix_not_matching, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -403,7 +403,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { barcode_info: barcode_info, page_size: page_size }
+      get api_v1_labwares_path, params: { barcode_info: barcode_info, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
@@ -420,7 +420,7 @@ describe Api::V1::LabwaresController, type: :request do
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
 
-      get api_v1_labwares_path, params: { barcode_info: barcode_info_not_matching, page_size: page_size }
+      get api_v1_labwares_path, params: { barcode_info: barcode_info_not_matching, "page[size]": page_size }
       expect(response).to be_success
 
       labwares_json = JSON.parse(response.body, symbolize_names: true)
