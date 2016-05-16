@@ -5,7 +5,7 @@ FORMAT: 1A
 RESTful JSON API-blueprint for registering and modifying all types of containers for holding all types of material (sample, library etc...).
 It can create, read and update a container (labware) and also add additional metadata to it.
 
-## Labware Type Collection [/labware_types]
+## Labware Type Collection [/labware_types{?page%5Bnumber%5D,page%5Bsize%5D}]
 
 ### List All Labware Types [GET]
 
@@ -54,7 +54,7 @@ It can create, read and update a container (labware) and also add additional met
             ]
         }
 
-## Labware Type [/labware_types/{labware_id}]
+## Labware Type [/labware_types/{labware_id}{?page%5Bnumber%5D,page%5Bsize%5D}]
         
 ### Get a Labware Type [GET]
 
@@ -99,7 +99,7 @@ This action response with the queried labware type data.
           ]
         }
 
-## Layout Collection [/layouts]
+## Layout Collection [/layouts{?page%5Bnumber%5D,page%5Bsize%5D}]
 
 ### List All Layouts [GET]
 
@@ -193,7 +193,7 @@ This action response with the queried layout data.
           ]
         }
 
-## Labware Collection [/labwares]
+## Labware Collection [/labwares{?page%5Bnumber%5D,page%5Bsize%5D,labware_type,barcode,barcode_prefix,barcode_info,external_id,created_after,created_before}]
 
 ### List All Labwares [GET]
 
