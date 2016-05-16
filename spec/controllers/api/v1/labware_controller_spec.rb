@@ -708,6 +708,22 @@ describe Api::V1::LabwaresController, type: :request do
                               name: 'fake type'
                           }
                       }
+                  },
+                  receptacles: {
+                      data: labware.receptacles.map { |receptacle| {
+                          attributes: {
+                              material_uuid: receptacle.material_uuid
+                          },
+                          relationships: {
+                              location: {
+                                  data: {
+                                      attributes: {
+                                          name: receptacle.location.name
+                                      }
+                                  }
+                              }
+                          }
+                      }}
                   }
               }
           }
@@ -1007,6 +1023,22 @@ describe Api::V1::LabwaresController, type: :request do
                               name: new_labware_type.name
                           }
                       }
+                  },
+                  receptacles: {
+                      data: @labware.receptacles.map { |receptacle| {
+                          attributes: {
+                              material_uuid: receptacle.material_uuid
+                          },
+                          relationships: {
+                              location: {
+                                  data: {
+                                      attributes: {
+                                          name: receptacle.location.name
+                                      }
+                                  }
+                              }
+                          }
+                      }}
                   }
               }
           }
@@ -1015,6 +1047,50 @@ describe Api::V1::LabwaresController, type: :request do
       expect { update_labware  }.to   change { Labware.count }.by(0)
                                 .and  change { LabwareType.count }.by(0)
                                 .and  change { Metadatum.count }.by(0)
+      expect(response).to be_unprocessable
+
+      response_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response_json).to include(:labware_type)
+      expect(response_json[:labware_type]).to include("can't be changed")
+    end
+
+    it "should not be able to change the labware type to a type that doesn't exist" do
+      @labware = create(:labware_with_receptacles)
+
+      @labware_json = {
+          data: {
+              relationships: {
+                  labware_type: {
+                      data: {
+                          attributes: {
+                              name: 'fake_labware_type'
+                          }
+                      }
+                  },
+                  receptacles: {
+                      data: @labware.receptacles.map { |receptacle| {
+                          attributes: {
+                              material_uuid: receptacle.material_uuid
+                          },
+                          relationships: {
+                              location: {
+                                  data: {
+                                      attributes: {
+                                          name: receptacle.location.name
+                                      }
+                                  }
+                              }
+                          }
+                      }}
+                  }
+              }
+          }
+      }
+
+      expect { update_labware  }.to   change { Labware.count }.by(0)
+                                          .and  change { LabwareType.count }.by(0)
+                                                    .and  change { Metadatum.count }.by(0)
       expect(response).to be_unprocessable
 
       response_json = JSON.parse(response.body, symbolize_names: true)
@@ -1368,6 +1444,85 @@ describe Api::V1::LabwaresController, type: :request do
 
       expect(labware_json).to include(:'metadata.key')
       expect(labware_json[:'metadata.key']).to include("can't be blank")
+    end
+
+    it 'should not allow filling a location that doesn\'t exist' do
+      @labware = create(:labware_with_receptacles_with_metadata)
+
+      @labware_json = {
+          data: {
+              relationships: {
+                  receptacles: {
+                      data: [
+                          {
+                              attributes: {
+                                  material_uuid: @labware.receptacles.first.material_uuid
+                              },
+                              relationships: {
+                                  location: {
+                                      data: {
+                                          attributes: {
+                                              name: 'fake location'
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      ]
+                  }
+              }
+          }
+      }
+
+      expect { update_labware  }.to  change { Labware.count }.by(0)
+                                         .and change { LabwareType.count }.by(0)
+                                                  .and change { Metadatum.count }.by(0)
+      expect(response).to be_unprocessable
+
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labware_json).to include(:'receptacles.location')
+      expect(labware_json[:'receptacles.location']).to include('must exist')
+    end
+
+    it 'should not allow filling a location that\'s not in this type' do
+      @labware = create(:labware_with_receptacles_with_metadata)
+      location = create(:location)
+
+      @labware_json = {
+          data: {
+              relationships: {
+                  receptacles: {
+                      data: [
+                          {
+                              attributes: {
+                                  material_uuid: @labware.receptacles.first.material_uuid
+                              },
+                              relationships: {
+                                  location: {
+                                      data: {
+                                          attributes: {
+                                              name: location.name
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      ]
+                  }
+              }
+          }
+      }
+
+      expect { update_labware  }.to  change { Labware.count }.by(0)
+                                         .and change { LabwareType.count }.by(0)
+                                                  .and change { Metadatum.count }.by(0)
+      expect(response).to be_unprocessable
+
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labware_json).to include(:'receptacles.location')
+      expect(labware_json[:'receptacles.location']).to include('must correspond to layout of this labware type')
     end
   end
 end
