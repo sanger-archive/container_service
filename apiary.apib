@@ -845,6 +845,12 @@ It is optional to the labware to has one or more metadata relationship(s).
                 ]
             }
 
++ Response 422 (application/json)
+
+        {
+            "barcode": "has already been taken"
+        }
+
 ### Create a new empty Labware with a given UUID [POST]
 
 + Request (application/vnd.api+json)
@@ -986,6 +992,18 @@ It is optional to the labware to has one or more metadata relationship(s).
                     }
                 ]
             }
+
++ Response 422 (application/json)
+
+        {
+            "uuid": "has already been taken"
+        }
+
++ Response 422 (application/json)
+
+        {
+            "uuid": "is not a valid UUID"
+        }
 
 ### Create a new Labware with metadata [POST]
 
@@ -1496,6 +1514,12 @@ It is optional to the labware to has one or more metadata relationship(s).
                 ]
             }
 
++ Response 422 (application/json)
+
+        {
+            "barcode": "has already been taken"
+        }
+
 ### Update an existing Labware: add a material to a receptacle [PUT]
 
 + Request (application/vnd.api+json)
@@ -1644,6 +1668,12 @@ It is optional to the labware to has one or more metadata relationship(s).
                 ]
             }
 
++ Response 422 (application/json)
+
+        {
+            "location": "is not a valid location"
+        }
+
 ### Update an existing Labware: change a material in a receptacle [PUT]
 
 + Request (application/vnd.api+json)
@@ -1791,7 +1821,13 @@ It is optional to the labware to has one or more metadata relationship(s).
                     }
                 ]
             }
-    
+
++ Response 422 (application/json)
+
+        {
+            "location": "is not a valid location"
+        }
+
 ### Update the existing metadata [PUT]
 
 + Request (application/vnd.api+json)
