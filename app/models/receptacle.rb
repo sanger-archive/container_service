@@ -11,7 +11,7 @@ class Receptacle < ApplicationRecord
   private
 
   def location_of_correct_layout
-    unless location.layout == labware.labware_type.layout
+    unless labware.labware_type.nil? or location.layout == labware.labware_type.layout
       errors.add :location, I18n.t('errors.messages.location_of_wrong_layout')
     end
   end

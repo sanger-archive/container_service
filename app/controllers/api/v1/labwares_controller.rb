@@ -70,8 +70,11 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
     if (receptacles_data = labware_json_params.dig(:relationships, :receptacles, :data))
       receptacles_data.each { |receptacle_params|
         location_name = receptacle_params.dig(:relationships, :location, :data, :attributes, :name)
-        receptacle_attributes = receptacles_attributes.find { |attr| attr[:location].name == location_name }
-        receptacle_attributes[:material_uuid] = receptacle_params.dig(:attributes, :material_uuid)
+        if (receptacle_attributes = receptacles_attributes.find { |attr| attr[:location].name == location_name })
+          receptacle_attributes[:material_uuid] = receptacle_params.dig(:attributes, :material_uuid)
+        else
+          receptacles_attributes << { material_uuid: receptacle_params.dig(:attributes, :material_uuid), location: Location.find_by(name: location_name) }
+        end
       }
     end 
 
