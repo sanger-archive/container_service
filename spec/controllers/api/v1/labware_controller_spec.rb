@@ -185,8 +185,8 @@ describe Api::V1::LabwaresController, type: :request do
       expect(labwares_json[:data].size).to eq(0)
     end
 
-    it "should return the correct labware instances when searching by barcode" do
-      barcode = "test_barcode test"
+    it 'should return the correct labware instances when searching by barcode' do
+      barcode = 'TEST-BARCODE-00001'
       labwares = create_list(:labware_with_receptacles_with_metadata, 1, barcode: barcode)
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
@@ -202,8 +202,8 @@ describe Api::V1::LabwaresController, type: :request do
     end
 
     it "should not return any labware instance when searching by not correct barcode" do
-      barcode = "test_barcode test"
-      barcode_not_matching = "1234"
+      barcode = 'TEST-BARCODE-00001'
+      barcode_not_matching = '1234'
       labwares = create_list(:labware_with_receptacles_with_metadata, 1, barcode: barcode)
       labwares2 =create_list(:labware_with_receptacles_with_metadata, 15)
       page_size = 100
@@ -471,7 +471,7 @@ describe Api::V1::LabwaresController, type: :request do
       new_labware = Labware.last
       expect(new_labware.external_id).to eq(labware.external_id)
       expect(new_labware.uuid.size).to eq(36)
-      expect(new_labware.barcode).to include('TEST_XYZ_')
+      expect(new_labware.barcode).to include('TEST-XYZ-')
       expect(new_labware.metadata).to be_empty
 
       check_response_is_same
@@ -505,7 +505,7 @@ describe Api::V1::LabwaresController, type: :request do
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
       new_labware = Labware.last
-      expect(new_labware.barcode).to include('TEST_')
+      expect(new_labware.barcode).to include('TEST-')
     end
 
     it 'should create a labware with a given barcode' do
@@ -515,7 +515,7 @@ describe Api::V1::LabwaresController, type: :request do
           data: {
               attributes: {
                   external_id: labware.external_id,
-                  barcode: 'TEST_BARCODE'
+                  barcode: 'TEST-BARCODE'
               },
               relationships: {
                   labware_type: {
@@ -536,18 +536,18 @@ describe Api::V1::LabwaresController, type: :request do
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
       new_labware = Labware.last
-      expect(new_labware.barcode).to eq('TEST_BARCODE')
+      expect(new_labware.barcode).to eq('TEST-BARCODE')
     end
 
     it 'should not allow duplicate barcodes' do
-      create(:labware_with_receptacles, barcode: 'TEST_BARCODE')
+      create(:labware_with_receptacles, barcode: 'TEST-BARCODE')
       labware = build(:labware_with_receptacles)
 
       @labware_json = {
           data: {
               attributes: {
                   external_id: labware.external_id,
-                  barcode: 'TEST_BARCODE'
+                  barcode: 'TEST-BARCODE'
               },
               relationships: {
                   labware_type: {
@@ -614,7 +614,7 @@ describe Api::V1::LabwaresController, type: :request do
               id: uuid,
               attributes: {
                   external_id: labware.external_id,
-                  barcode: 'TEST_BARCODE'
+                  barcode: 'TEST-BARCODE'
               },
               relationships: {
                   labware_type: {
@@ -646,7 +646,7 @@ describe Api::V1::LabwaresController, type: :request do
               id: '12345',
               attributes: {
                   external_id: labware.external_id,
-                  barcode: 'TEST_BARCODE'
+                  barcode: 'TEST-BARCODE'
               },
               relationships: {
                   labware_type: {
@@ -677,7 +677,7 @@ describe Api::V1::LabwaresController, type: :request do
           data: {
               attributes: {
                   external_id: labware.external_id,
-                  barcode: 'TEST_BARCODE'
+                  barcode: 'TEST-BARCODE'
               }
           }
       }
@@ -699,7 +699,7 @@ describe Api::V1::LabwaresController, type: :request do
           data: {
               attributes: {
                   external_id: labware.external_id,
-                  barcode: 'TEST_BARCODE'
+                  barcode: 'TEST-BARCODE'
               },
               relationships: {
                   labware_type: {
@@ -771,7 +771,7 @@ describe Api::V1::LabwaresController, type: :request do
       new_labware = Labware.last
       expect(new_labware.external_id).to eq(labware.external_id)
       expect(new_labware.uuid.size).to eq(36)
-      expect(new_labware.barcode).to include('TEST_XYZ_')
+      expect(new_labware.barcode).to include('TEST-XYZ-')
 
       new_labware.receptacles.zip(labware.receptacles) { |new_receptacle, receptacle_orig|
         expect(new_receptacle.material_uuid).to eq(receptacle_orig.material_uuid)
@@ -830,7 +830,7 @@ describe Api::V1::LabwaresController, type: :request do
       new_labware = Labware.last
       expect(new_labware.external_id).to eq(labware.external_id)
       expect(new_labware.uuid.size).to eq(36)
-      expect(new_labware.barcode).to include('TEST_XYZ_')
+      expect(new_labware.barcode).to include('TEST-XYZ-')
 
       new_labware.receptacles.zip(labware.receptacles) { |new_receptacle, receptacle_orig|
         expect(new_receptacle.material_uuid).to eq(receptacle_orig.material_uuid)

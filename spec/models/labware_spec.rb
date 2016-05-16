@@ -17,6 +17,12 @@ RSpec.describe Labware, type: :model do
     expect(build(:labware_with_receptacles, external_id: nil)).to be_valid
   end
 
+  it 'should build a barcode with the correct format' do
+    labware = create(:labware_with_receptacles, barcode_prefix: 'TEST', barcode_info: 'XYZ', id: 123)
+
+    expect(labware.barcode).to eq('TEST-XYZ-00000123')
+  end
+
   it 'should create a uuid only when it\'s created' do
     labware = build(:labware_with_receptacles)
     expect(labware.uuid.size).to eq(36)

@@ -27,8 +27,8 @@ class Labware < ApplicationRecord
   end
 
   def generate_barcode
-    info = barcode_info ? "#{barcode_info}_" : ''
-    update_column(:barcode, "#{barcode_prefix}_#{info}#{id}")
+    info = barcode_info ? "#{barcode_info}-" : ''
+    update_column(:barcode, "#{barcode_prefix}-#{info}#{id.to_s.rjust(8, '0')}")
   end
 
   def one_location_per_receptacle
