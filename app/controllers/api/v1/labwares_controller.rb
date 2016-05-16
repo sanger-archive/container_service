@@ -35,11 +35,8 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
     params = (labware_json_params[:attributes] or {}).merge(uuid: labware_json_params[:id]).delete_if { |k, v| v.nil? }
 
     labware_type = @labware ? @labware.labware_type : nil
-    if labware_json_params[:relationships] and
-        labware_json_params[:relationships][:labware_type] and
-        labware_json_params[:relationships][:labware_type][:data] and
-        labware_json_params[:relationships][:labware_type][:data][:attributes]
-      new_labware_type = LabwareType.find_by(labware_json_params[:relationships][:labware_type][:data][:attributes])
+    if (labware_type_params = labware_json_params.dig(:relationships, :labware_type, :data, :attributes))
+      new_labware_type = LabwareType.find_by(labware_type_params)
       if labware_type.nil? or labware_type == new_labware_type
         labware_type = new_labware_type
       else 
@@ -48,12 +45,8 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
     end
 
     metadata = @labware ? @labware.metadata.map { |metadatum| {id: metadatum.id, key: metadatum.key, value: metadatum.value} } : []
-    if labware_json_params and
-        labware_json_params[:relationships] and
-        labware_json_params[:relationships][:metadata] and
-        labware_json_params[:relationships][:metadata][:data]
-
-      labware_json_params[:relationships][:metadata][:data].each { |metadatum|
+    if (metadata_data = labware_json_params.dig(:relationships, :metadata, :data))
+      metadata_data.each { |metadatum|
         metadatum = metadatum[:attributes]
         existing_metadatum = metadata.find { |m| m[:key] == metadatum[:key] }
         if existing_metadatum
@@ -74,13 +67,11 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
       }
     end
 
-    if labware_json_params[:relationships] and
-        labware_json_params[:relationships][:receptacles] and
-        labware_json_params[:relationships][:receptacles][:data]
-      labware_json_params[:relationships][:receptacles][:data].each { |receptacle_params| 
-        location_name = receptacle_params[:relationships][:location][:data][:attributes][:name]
+    if (receptacles_data = labware_json_params.dig(:relationships, :receptacles, :data))
+      receptacles_data.each { |receptacle_params|
+        location_name = receptacle_params.dig(:relationships, :location, :data, :attributes, :name)
         receptacle_attributes = receptacles_attributes.find { |attr| attr[:location].name == location_name }
-        receptacle_attributes[:material_uuid] = receptacle_params[:attributes][:material_uuid]
+        receptacle_attributes[:material_uuid] = receptacle_params.dig(:attributes, :material_uuid)
       }
     end 
 
