@@ -6,9 +6,9 @@ describe Api::V1::LabwaresController, type: :request do
   def validate_labware(labware_json, labware)
     expect(labware_json[:id]).to eq(labware.uuid)
     expect(labware_json[:attributes][:barcode]).to eq(labware.barcode)
-    expect(labware_json[:attributes][:'external-id']).to eq(labware.external_id)
+    expect(labware_json[:attributes][:external_id]).to eq(labware.external_id)
 
-    labware_type_json = labware_json[:relationships][:'labware-type'][:data]
+    labware_type_json = labware_json[:relationships][:labware_type][:data]
     expect(labware_type_json[:id]).to eq(labware.labware_type.id.to_s)
 
     receptacles_json = labware_json[:relationships][:receptacles][:data]
@@ -22,7 +22,7 @@ describe Api::V1::LabwaresController, type: :request do
   def validate_included_receptacles(receptacles_json, receptacles)
     receptacles_json.zip(receptacles).each { |receptacle_json, receptacle| 
       expect(receptacle_json[:relationships][:location][:data][:id]).to eq(receptacle.location.id.to_s)
-      expect(receptacle_json[:attributes][:'material-uuid']).to eq(receptacle.material_uuid)
+      expect(receptacle_json[:attributes][:material_uuid]).to eq(receptacle.material_uuid)
     }
   end
 
@@ -64,7 +64,7 @@ describe Api::V1::LabwaresController, type: :request do
       labware_json = JSON.parse(response.body, symbolize_names: true)
 
       validate_labware(labware_json[:data], labware)
-      validate_included_labware_type(labware_json[:included].find { |obj| obj[:id] == labware.labware_type.id.to_s and obj[:type] == 'labware-types' }, labware.labware_type)
+      validate_included_labware_type(labware_json[:included].find { |obj| obj[:id] == labware.labware_type.id.to_s and obj[:type] == 'labware_types' }, labware.labware_type)
       validate_included_receptacles(labware_json[:included].select { |obj| obj[:type] == 'receptacles' }, labware.receptacles)
       validate_included_locations(labware_json[:included].select { |obj| obj[:type] == 'locations' }, labware.receptacles.map { |r| r.location })
     end
@@ -97,7 +97,7 @@ describe Api::V1::LabwaresController, type: :request do
       (0...labwares.size).each do |n|
         validate_labware(labwares_json[:data][n], labwares[n])
       end
-      validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labwares.first.labware_type.id.to_s and obj[:type] == 'labware-types' }, labwares.first.labware_type)
+      validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labwares.first.labware_type.id.to_s and obj[:type] == 'labware_types' }, labwares.first.labware_type)
       validate_included_receptacles(labwares_json[:included].select { |obj| obj[:type] == 'receptacles' }, labwares.map {|labware| labware.receptacles }.flatten)
       validate_included_locations(labwares_json[:included].select { |obj| obj[:type] == 'locations' }, labwares.map {|labware| labware.receptacles.map { |r| r.location }}.flatten)
     end
@@ -166,7 +166,7 @@ describe Api::V1::LabwaresController, type: :request do
 
       expect(Labware.all.size).to eq(labwares.size + labwares2.size)
       expect(labwares_json[:data].size).to eq(labwares.size)
-      validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labware_type.id.to_s and obj[:type] == 'labware-types' }, labware_type)
+      validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labware_type.id.to_s and obj[:type] == 'labware_types' }, labware_type)
     end
 
     it "should not return any labware instance when searching by not correct type" do
@@ -230,7 +230,7 @@ describe Api::V1::LabwaresController, type: :request do
 
       expect(Labware.all.size).to eq(labwares.size + labwares2.size)
       expect(labwares_json[:data].size).to eq(labwares.size)
-      expect(labwares_json[:data][0][:attributes][:"external-id"]).to eq(external_id)
+      expect(labwares_json[:data][0][:attributes][:external_id]).to eq(external_id)
     end
 
     it "should not return any labware instance when searching by not correct external id" do
@@ -265,9 +265,9 @@ describe Api::V1::LabwaresController, type: :request do
 
       expect(Labware.all.size).to eq(1 + labwares2.size)
       expect(labwares_json[:data].size).to eq(1)
-      validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labware_type.id.to_s and obj[:type] == 'labware-types' }, labware_type)
+      validate_included_labware_type(labwares_json[:included].find { |obj| obj[:id] == labware_type.id.to_s and obj[:type] == 'labware_types' }, labware_type)
       expect(labwares_json[:data][0][:attributes][:barcode]).to eq(barcode)
-      expect(labwares_json[:data][0][:attributes][:"external-id"]).to eq(external_id)
+      expect(labwares_json[:data][0][:attributes][:external_id]).to eq(external_id)
     end
 
     it "should return all labware instances that's creation date less than the given date when searching by before" do
@@ -286,7 +286,7 @@ describe Api::V1::LabwaresController, type: :request do
       expect(Labware.all.size).to eq(25)
       expect(labwares_json[:data].size).to eq(6)
       labwares_json[:data].each do |labware_json_data|
-        expect(labware_json_data[:attributes][:"created-at"].to_datetime).to be <= before_creation_date
+        expect(labware_json_data[:attributes][:created_at].to_datetime).to be <= before_creation_date
       end
     end
 
@@ -323,7 +323,7 @@ describe Api::V1::LabwaresController, type: :request do
       expect(Labware.all.size).to eq(25)
       expect(labwares_json[:data].size).to eq(4)
       labwares_json[:data].each do |labware_json_data|
-        expect(labware_json_data[:attributes][:"created-at"].to_datetime).to be >= after_creation_date
+        expect(labware_json_data[:attributes][:created_at].to_datetime).to be >= after_creation_date
       end
     end
 
@@ -360,8 +360,8 @@ describe Api::V1::LabwaresController, type: :request do
       expect(Labware.all.size).to eq(25)
       expect(labwares_json[:data].size).to eq(3)
       labwares_json[:data].each do |labware_json_data|
-        expect(labware_json_data[:attributes][:"created-at"].to_datetime).to be <= before_creation_date
-        expect(labware_json_data[:attributes][:"created-at"].to_datetime).to be >= after_creation_date
+        expect(labware_json_data[:attributes][:created_at].to_datetime).to be <= before_creation_date
+        expect(labware_json_data[:attributes][:created_at].to_datetime).to be >= after_creation_date
       end
     end
 
