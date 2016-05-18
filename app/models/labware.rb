@@ -16,6 +16,7 @@ class Labware < ApplicationRecord
   
   validates :uuid, uniqueness: {case_sensitive: false}, uuid: true
   validates :barcode, uniqueness: {case_sensitive: false}
+  validates :external_id, uniqueness: {case_sensitive: false}
   validates :barcode_prefix, presence: true, if: 'barcode.nil?'
   validate  :one_location_per_receptacle, if: :labware_type
   validate  :labware_type_immutable

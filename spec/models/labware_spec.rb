@@ -66,6 +66,13 @@ RSpec.describe Labware, type: :model do
     expect(build(:labware_with_receptacles, uuid: labware.uuid)).to_not be_valid
   end
 
+  it 'should test the external_id does not already exist' do
+    external_id = 'test_external_id'
+    labware = create(:labware_with_receptacles, external_id: external_id)
+
+    expect(build(:labware_with_receptacles,  external_id: external_id)).to_not be_valid
+  end
+
   it 'should be valid without a prefix if a barcode is given' do
     expect(build(:labware_with_receptacles, barcode_prefix: nil, barcode: 'test_barcode')).to be_valid
   end

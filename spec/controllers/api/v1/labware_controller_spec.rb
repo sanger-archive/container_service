@@ -571,6 +571,38 @@ describe Api::V1::LabwaresController, type: :request do
       expect(labware_json[:barcode]).to include('has already been taken')
     end
 
+    it 'should not allow duplicate external_id' do
+      external_id = 'test_external_id'
+      create(:labware_with_receptacles, external_id: external_id)
+      labware = build(:labware_with_receptacles)
+
+      @labware_json = {
+          data: {
+              attributes: {
+                  external_id: external_id
+              },
+              relationships: {
+                  labware_type: {
+                      data: {
+                          attributes: {
+                              name: labware.labware_type.name
+                          }
+                      }
+                  }
+              }
+          }
+      }
+
+      expect { post_json }.to   change { Labware.count }.by(0)
+                          .and  change { LabwareType.count }.by(0)
+                          .and  change { Metadatum.count }.by(0)
+      expect(response).to be_unprocessable
+      labware_json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(labware_json).to include(:external_id)
+      expect(labware_json[:external_id]).to include('has already been taken')
+    end
+
     it 'should create a labware with a given uuid' do
       labware = build(:labware_with_receptacles)
       uuid = UUID.new.generate
