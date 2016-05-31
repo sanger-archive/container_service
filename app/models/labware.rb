@@ -11,13 +11,13 @@ class Labware < ApplicationRecord
   attr_accessor :barcode_prefix
   attr_accessor :barcode_info
 
-  after_initialize  :generate_uuid, if: 'uuid.nil?'
-  after_save        :generate_barcode, if: 'barcode.nil?'
+  after_initialize  :generate_uuid, unless: :uuid
+  after_save        :generate_barcode, unless: :barcode
   
   validates :uuid, uniqueness: {case_sensitive: false}, uuid: true
   validates :barcode, uniqueness: {case_sensitive: false}
   validates :external_id, uniqueness: {case_sensitive: false}
-  validates :barcode_prefix, presence: true, if: 'barcode.nil?'
+  validates :barcode_prefix, presence: true, unless: :barcode
   validate  :one_location_per_receptacle, if: :labware_type
   validate  :labware_type_immutable
 
