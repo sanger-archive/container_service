@@ -52,8 +52,9 @@ describe Api::V1::LayoutsController, type: :request do
       (0...layouts.size).each do |n|
         validate_layout(layouts_json[:data][n], layouts[n])
 
+        locations_ids = layouts_json[:data][n][:relationships][:locations][:data].map { |location| location[:id]}
         included_locations_json = layouts_json[:included].select { |obj|
-          obj[:type] == 'locations' && obj[:relationships][:layout][:data][:id] == layouts[n].id.to_s
+          obj[:type] == 'locations' && locations_ids.include?(obj[:id])
         }
 
         validate_included(included_locations_json, layouts[n].locations)
