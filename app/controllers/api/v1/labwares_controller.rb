@@ -128,7 +128,7 @@ class Api::V1::LabwaresController < Api::V1::ApplicationController
   end
 
   def included_relations_to_render
-    [:labware_type, :receptacles, :metadata, 'receptacles.location']
+    [:labware_type, 'labware_type.layout', :receptacles, :metadata, 'receptacles.location']
   end
 
   def filter(params)
