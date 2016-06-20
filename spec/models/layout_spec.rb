@@ -15,6 +15,14 @@ RSpec.describe Layout, type: :model do
     expect(build(:layout_with_locations, name: '')).to_not be_valid
   end
 
+  it "should be invalid without number of rows" do
+    expect(build(:layout_with_locations, row: nil)).to_not be_valid
+  end
+
+  it "should be invalid without number of columns" do
+    expect(build(:layout_with_locations, column: nil)).to_not be_valid
+  end
+
   it "should be invalid without any locations" do
     expect(build(:layout, locations: [])).to_not be_valid
   end

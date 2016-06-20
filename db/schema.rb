@@ -11,66 +11,63 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160505153148) do
+ActiveRecord::Schema.define(version: 20160620135000) do
 
-  create_table "labware_types", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+  create_table "labware_types", force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "layout_id"
-    t.index ["layout_id"], name: "index_labware_types_on_layout_id", using: :btree
+    t.index ["layout_id"], name: "index_labware_types_on_layout_id"
   end
 
-  create_table "labwares", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+  create_table "labwares", force: :cascade do |t|
     t.string   "barcode"
     t.string   "external_id"
     t.string   "uuid"
     t.integer  "labware_type_id"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
-    t.index ["barcode"], name: "index_labwares_on_barcode", using: :btree
-    t.index ["external_id"], name: "index_labwares_on_external_id", using: :btree
-    t.index ["labware_type_id"], name: "index_labwares_on_labware_type_id", using: :btree
-    t.index ["uuid"], name: "index_labwares_on_uuid", using: :btree
+    t.index ["barcode"], name: "index_labwares_on_barcode"
+    t.index ["external_id"], name: "index_labwares_on_external_id"
+    t.index ["labware_type_id"], name: "index_labwares_on_labware_type_id"
+    t.index ["uuid"], name: "index_labwares_on_uuid"
   end
 
-  create_table "layouts", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+  create_table "layouts", force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer  "row"
+    t.integer  "column"
   end
 
-  create_table "locations", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+  create_table "locations", force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "layout_id"
-    t.index ["layout_id"], name: "index_locations_on_layout_id", using: :btree
+    t.index ["layout_id"], name: "index_locations_on_layout_id"
   end
 
-  create_table "metadata", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+  create_table "metadata", force: :cascade do |t|
     t.string   "key"
     t.string   "value"
     t.integer  "labware_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["key", "labware_id"], name: "index_metadata_on_key_and_labware_id", unique: true, using: :btree
-    t.index ["labware_id"], name: "index_metadata_on_labware_id", using: :btree
+    t.index ["key", "labware_id"], name: "index_metadata_on_key_and_labware_id", unique: true
+    t.index ["labware_id"], name: "index_metadata_on_labware_id"
   end
 
-  create_table "receptacles", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+  create_table "receptacles", force: :cascade do |t|
     t.integer  "labware_id"
     t.integer  "location_id"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
     t.string   "material_uuid"
-    t.index ["labware_id"], name: "index_receptacles_on_labware_id", using: :btree
-    t.index ["location_id"], name: "index_receptacles_on_location_id", using: :btree
+    t.index ["labware_id"], name: "index_receptacles_on_labware_id"
+    t.index ["location_id"], name: "index_receptacles_on_location_id"
   end
 
-  add_foreign_key "labware_types", "layouts"
-  add_foreign_key "locations", "layouts"
-  add_foreign_key "metadata", "labwares"
-  add_foreign_key "receptacles", "labwares"
-  add_foreign_key "receptacles", "locations"
 end

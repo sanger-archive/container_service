@@ -5,5 +5,5 @@ class Layout < ApplicationRecord
   has_many :locations
 
   validates :name, presence: true, uniqueness: {case_sensitive: false}
-  validates_presence_of :locations
+  validates_presence_of :locations, :row, :column
 end
