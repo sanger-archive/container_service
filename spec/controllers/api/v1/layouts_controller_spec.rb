@@ -6,6 +6,8 @@ describe Api::V1::LayoutsController, type: :request do
   def validate_layout(layout_json, layout)
     expect(layout_json[:id]).to eq(layout.id.to_s)
     expect(layout_json[:attributes][:name]).to eq(layout.name)
+    expect(layout_json[:attributes][:row]).to eq(layout.row)
+    expect(layout_json[:attributes][:column]).to eq(layout.column)
 
     expected_locations_json = layout_json[:relationships][:locations][:data]
     expect(expected_locations_json.size).to eq(layout.locations.size)
